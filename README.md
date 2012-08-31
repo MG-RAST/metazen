@@ -24,4 +24,4 @@ Spreadsheet::WriteExcel
 After installing these components, you should be able to view the
 Metazen tool on your server thru a web browser at the following URL:
 
-http://<your-host-name>/~<your-user-name>/<your-sub-directory>/Metazen/index.cgi
+http://(your-host-name)/~(your-user-name)/(your-sub-directory)/Metazen/index.cgi
