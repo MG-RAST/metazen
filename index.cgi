@@ -1403,14 +1403,6 @@ sub base_template {
 	<div id="top_nav_links"><a class= "nav_top" href="http://blog.metagenomics.anl.gov/howto/" target=_blank><img src='./Html/mg-help.png' style='width: 20px; height: 20px;' title='Support'></a></div>
 	<div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=Contact"><img src='./Html/mg-contact.png' style='width: 20px; height: 20px;' title='Contact'></a></div>
       </div>
-      <div id="login">
-	
-	  <div id='login'><form method='post' id='login_form' enctype='multipart/form-data' action='metagenomics.cgi' style='margin: 0px; padding: 0px;'>
-<input type="hidden" name="page" value="Login" id="page" />
-<input type="hidden" name="action" value="perform_login" id="action" />
-<div id='login_box'><div id='login_left_txt'>EXISTING USERS &raquo;</div><div id='login_input_box'><div id='login_input_header'>LOGIN<a class='forgot' href='metagenomics.cgi?page=Register' style='margin-left:32px;' title='click to register a new account'>REGISTER</a></div><div id='login_input_box'><input type='text' title='Enter your login name here.' name='login' style='padding:0px;'></div></div><div id='login_input_box'><div><div style='float: left;' id='login_input_header'>PASSWORD</div><div id='login_input_header_forgot'><a class='forgot' href='metagenomics.cgi?page=RequestNewPassword'>FORGOT?</a></div></div><div id='login_input_box'><input type='password' title='Enter your password.' name='password' style='padding:0px;'></div></div><div id='login_submit'><input type='submit' value='login' style='margin-right: 0; width:45px;cursor: pointer;' title='Click here to login!'></div></div></form></div>
-	
-      </div>
     </div>
   </div>
   <div id="content_frame">
