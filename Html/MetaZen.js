@@ -242,17 +242,22 @@ function isUrl(s) {
   return regexp.test(s);
 }
 
-function addMiscParam(fieldLevel, myDiv) {
-  var txt = document.getElementById(myDiv);
-  var param_number = txt.innerHTML.split("Miscellaneous Param").length + 1;
+function addMiscParam(fieldLevel, myDivId) {
+  var myDiv = document.getElementById(myDivId);
+  var param_number = myDiv.innerHTML.split("Miscellaneous Param").length + 1;
   if(param_number > 10) {
-    var message_shown = txt.innerHTML.split("maximum allowed").length - 1;
+    var message_shown = myDiv.innerHTML.split("maximum allowed").length - 1;
     if(!message_shown) {
-      txt.innerHTML = txt.innerHTML+"<table><tr><td style='vertical-align:middle;width:395px;text-align:justify;padding:10px;'>Note: 10 miscellaneous parameters is the maximum allowed thru this web tool.  If you would like to enter more miscellaneous parameters, please enter them manually after downloading the spreadsheet.</td></tr></table>\n";
+      var divTag = document.createElement("div"); 
+      divTag.innerHTML = "<table><tr><td style='vertical-align:middle;width:395px;text-align:justify;padding:10px;'>Note: 10 miscellaneous parameters is the maximum allowed thru this web tool.  If you would like to enter more miscellaneous parameters, please enter them manually after downloading the spreadsheet.</td></tr></table>\n";
+      myDiv.appendChild(divTag);
     }
   } else {
-    txt.innerHTML = txt.innerHTML+"<table><tr><td style='vertical-align:middle;width:195px;'><input type=\"checkbox\" name=\""+fieldLevel+"_misc_param_"+param_number+"_checkbox\" checked />&nbsp;&nbsp;Miscellaneous Param "+param_number+"<span id='"+fieldLevel+"_misc_param_"+param_number+"' data-original-title=\"\"><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td><td style='vertical-align:middle;'><input style='width:195px;' type='text' name='"+fieldLevel+"_misc_param_"+param_number+"'></td></tr>\n";
+    var divTag = document.createElement("div"); 
+    divTag.innerHTML = "<table><tr><td style='vertical-align:middle;width:195px;'><input type=\"checkbox\" name=\""+fieldLevel+"_misc_param_"+param_number+"_checkbox\" checked />&nbsp;&nbsp;Miscellaneous Param "+param_number+"<span id='"+fieldLevel+"_misc_param_"+param_number+"' data-original-title=\"\"><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td><td style='vertical-align:middle;'><input style='width:195px;' type='text' name='"+fieldLevel+"_misc_param_"+param_number+"'></td></tr>\n";
+    myDiv.appendChild(divTag);
   }
+
   for(var i=2; i<=param_number; ++i) {
     eval("$('#"+fieldLevel+"_misc_param_"+i+"').popover({ 'title': 'Miscellaneous Param', 'content': 'any other measurement performed or parameter collected, that is not listed here'});");
   }
