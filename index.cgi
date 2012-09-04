@@ -5,16 +5,17 @@ use warnings;
 
 use CGI;
 use JSON;
-
+use Encode;
 use LWP::UserAgent;
-
+use HTML::Entities;
 use Spreadsheet::WriteExcel;
+use File::Temp qw/ tempfile tempdir /;
 
 my $cgi = new CGI();
 my $json = new JSON();
 
 my $session_id = $cgi->cookie('WebSession');
-my $user;
+#my $user;
 
 my $url = "http://api.metagenomics.anl.gov/metadata/template";
 my $ua = LWP::UserAgent->new;
@@ -22,8 +23,8 @@ my $res = $ua->get($url);
 
 my $json_meta_template = $json->decode($res->content);
 my $lib_descriptions = { 'metagenome' => 'shotgun metagenome',
-			 'mimarks-survey' => 'amplicon metagenome (16S)',
-			 'metatranscriptome' => 'meta transcriptome' };
+                         'mimarks-survey' => 'amplicon metagenome (16S)',
+                         'metatranscriptome' => 'meta transcriptome' };
 
 my $project_display_fields = &get_project_display_fields();
 my $sample_display_fields = &get_sample_display_fields();
@@ -66,10 +67,13 @@ print qq~
   <div id='metadata_help_tool'>
     <div class='well'><h3>about this tool:</h3>
       <br />
-      <p>This tool is designed to help you fill out your metadata spreadsheet. The metadata you provide, helps us to analyze your data more accurately and helps make MG-RAST a more useful resource.</p>
+      <p>Metadata (or data about the data) has become a necessity as the community generates large quantities of data sets.</p>
+      <p>Using community generated questionnaires we capture this metadata. MG-RAST has implemented the use of <a href='http://gensc.org/gc_wiki/index.php/MIxS' target=_blank>Minimum Information about any (X) Sequence</a> developed by the <a href='http://gensc.org' target=_blank >Genomic Standards Consortium</a> (GSC).</p>
+      <p>The best form to capture metadata is via a simple spreadsheet with 12 mandatory terms. This tool is designed to help you fill out your metadata spreadsheet. The metadata you provide, helps us to analyze your data more accurately and helps make MG-RAST a more useful resource.</p>
       <br />
       <p style='font-size:14px;font-weight:bold;'>Terminology:</p>
       <ul>
+      <li>project - a set of samples which are being analyzed together</li>
       <li>sample - a single entity that has been obtained for analysis</li>
       <li>library - a prepped collection of DNA fragments generated from a sample (also, in this case, corresponds to a sequencing run)</li>
       <li>environmental information - the characteristics which describe the environment in which your samples were obtained</li>
@@ -99,16 +103,8 @@ sub print_prefill_options {
   print "
     <div class='well'><h3>prefill form:</h3>
       <br />
-      <p>To prefill the project tab with your information please select from the contact status options below and click 'prefill form'. Optionally, you can also prefill other project fields and the number of samples in the form by selecting a previous project below before clicking the 'prefill form' button.</p>
-      <br />
+      <p>To prefill the project tab with information from a previous project, select a project from the drop-down menu below and click the 'prefill form' button.</p>
       <form method='post' enctype='multipart/form-data' id='prefill_form'>
-        <p>Select your contact status:
-          <select name='contact_status'>
-            <option value='pi'>Principal Investigator</option>
-            <option value='tech'>Technical Contact</option>
-            <option value='both'>Both</option>
-          </select>
-        </p>
         <p>Select your previous project from which to prefill the form:
           <select name='previous_project'>
             <option value='none'>none</option>\n";
@@ -117,7 +113,7 @@ sub print_prefill_options {
     my $id = $info->{'id'};
     my $value = $id;
     $value .= ($info->{'name'} eq "") ? "" : " - ".$info->{'name'};
-    $value .= ($info->{'pi'} eq "") ? "" : " - ".$info->{'pi'};
+    $value .= ($info->{'pi'} eq "") ? "" : " - ".encode_entities(decode("utf8", $info->{'pi'}));
     print "            <option value='$id'>$value</option>\n";
   }
 
@@ -688,16 +684,16 @@ sub print_bottom_of_form {
     foreach my $field (@top_fields) {
       $top_fields_hash{$field} = 1;
       print &print_field($field, 'library', $json_meta_template->{'library'}{$lib}{$field}{'type'},
-			 $json_meta_template->{'library'}{$lib}{$field}{'required'}, 1, $lib);
+                         $json_meta_template->{'library'}{$lib}{$field}{'required'}, 1, $lib);
     }
 
     print "
-		      </table>
-		      <br />
-		      <p style='padding:10px;'><a style='cursor:pointer;' onclick=\"toggle('$lib\_more_fields_div');\" >Click to view/hide more fields</a></p>
-		      <br />
-		      <div id='$lib\_more_fields_div' style='display: none;'>
-			<table>\n";
+                      </table>
+                      <br />
+                      <p style='padding:10px;'><a style='cursor:pointer;' onclick=\"toggle('$lib\_more_fields_div');\" >Click to view/hide more fields</a></p>
+                      <br />
+                      <div id='$lib\_more_fields_div' style='display: none;'>
+                        <table>\n";
 
     foreach my $field (sort @opt_library_fields) {
       unless($field eq 'misc_param' || $field eq 'run_machine_type' || exists $top_fields_hash{$field} ||
@@ -786,275 +782,275 @@ sub search_address {
 }
 
 sub generate_excel_spreadsheet {
-#  my $filename = "metadata_spreadsheet.".($session_id).".xls";
-  my $filename = "metadata_spreadsheet.xls";
-  if(open my $fh, ">./Tmp/$filename") {
-    my $workbook  = Spreadsheet::WriteExcel->new($fh);
+  my ($file_handle, $filename) = tempfile("metadata_spreadsheet_XXXXXXX", DIR => './Tmp/', SUFFIX => '.xls');
+  my $workbook  = Spreadsheet::WriteExcel->new($file_handle);
 
-    # README worksheet ###########################
-    my $readme_worksheet = $workbook->add_worksheet('README');
+  # README worksheet ###########################
+  my $readme_worksheet = $workbook->add_worksheet('README');
 
-    my @readme = ('MG-RAST Metadata Spreadsheet',
-            '',
-            'project tab: enter values for one project in first row',
-            'sample tab: enter values for one or more samples, one sample per row',
-            'library tab: enter values for each sample (including sample name) in appropriate library type, one library per row',
-            'ep (environmental package) tab: enter values for each sample (including sample name) in appropriate ep type, one ep per row',
-            '',
-            'pre-filled rows:',
-            '1. metadata label - required fields are in red',
-            '2. label description - includes units if applicable',
-            '',
-            'NOTE:',
-            '1. Please enter data starting with first empty row, do not overwrite pre-filled rows',
-            '2. Each sample must have only one enviromental package associated with it',
-            '3. Each sample must have one, but may have more than one, library associated with it',
-            '4. Library field metagenome_name must be unique for each library, and will be the name of the MG-RAST metagenome');
+  my @readme = ('MG-RAST Metadata Spreadsheet',
+          '',
+          'project tab: enter values for one project in first row',
+          'sample tab: enter values for one or more samples, one sample per row',
+          'library tab: enter values for each sample (including sample name) in appropriate library type, one library per row',
+          'ep (environmental package) tab: enter values for each sample (including sample name) in appropriate ep type, one ep per row',
+          '',
+          'pre-filled rows:',
+          '1. metadata label - required fields are in red',
+          '2. label description - includes units if applicable',
+          '',
+          'NOTE:',
+          '1. Please enter data starting with first empty row, do not overwrite pre-filled rows',
+          '2. Each sample must have only one enviromental package associated with it',
+          '3. Each sample must have one, but may have more than one, library associated with it',
+          '4. Library field metagenome_name must be unique for each library, and will be the name of the MG-RAST metagenome');
 
-    for(my $row=0; $row<@readme; ++$row) {
-      $readme_worksheet->write($row, 0, $readme[$row]);
+  for(my $row=0; $row<@readme; ++$row) {
+    $readme_worksheet->write($row, 0, $readme[$row]);
+  }
+
+  my $format = $workbook->add_format();
+  $format->set_color('red');
+
+  # project worksheet ##########################
+  my $project_worksheet = $workbook->add_worksheet('project');
+
+  my @req_project_fields = ();
+  my @opt_project_fields = ();
+  my %field_definitions = ();
+  foreach my $field (keys %{$json_meta_template->{'project'}{'project'}}) {
+    if($json_meta_template->{'project'}{'project'}{$field}{'required'} == 1 && $field ne 'project_name') {
+      push @req_project_fields, $field;
+    } else {
+      push @opt_project_fields, $field;
     }
+    $field_definitions{$field} = $json_meta_template->{'project'}{'project'}{$field}{'definition'};
+  }
 
-    my $format = $workbook->add_format();
-    $format->set_color('red');
+  my $col = 0;
+  foreach my $field ('project_name', sort @req_project_fields) {
+    $project_worksheet->write(0, $col, $field, $format);
+    $project_worksheet->write(1, $col, $field_definitions{$field});
+    $project_worksheet->write(2, $col, decode("utf8", $cgi->param("project_$field")));
+    ++$col;
+  }
 
-    # project worksheet ##########################
-    my $project_worksheet = $workbook->add_worksheet('project');
-
-    my @req_project_fields = ();
-    my @opt_project_fields = ();
-    my %field_definitions = ();
-    foreach my $field (keys %{$json_meta_template->{'project'}{'project'}}) {
-      if($json_meta_template->{'project'}{'project'}{$field}{'required'} == 1) {
-        push @req_project_fields, $field;
-      } else {
-        push @opt_project_fields, $field;
-      }
-      $field_definitions{$field} = $json_meta_template->{'project'}{'project'}{$field}{'definition'};
-    }
-
-    my $col = 0;
-    foreach my $field (sort @req_project_fields) {
-      $project_worksheet->write(0, $col, $field, $format);
+  foreach my $field (sort @opt_project_fields) {
+    if($cgi->param("project_$field\_checkbox") && $field ne 'misc_param') {
+      $project_worksheet->write(0, $col, $field);
       $project_worksheet->write(1, $col, $field_definitions{$field});
-      $project_worksheet->write(2, $col, $cgi->param("project_$field"));
+      if($field eq 'project_funding' && $cgi->param("project_project_funding") eq 'Other - enter text') {
+        $project_worksheet->write(2, $col, decode("utf8", $cgi->param("project_other_funding")));
+      } elsif($field eq 'project_description' &&
+              $cgi->param("project_project_description") eq 'This project explores ... with xxx samples from nn different locations...') {
+        # Do nothing here.  We just want to prevent the default project_description text from being entered.
+      } else {
+        $project_worksheet->write(2, $col, decode("utf8", $cgi->param("project_$field")));
+      }
       ++$col;
     }
+  }
 
-    foreach my $field (sort @opt_project_fields) {
-      if($cgi->param("project_$field\_checkbox") && $field ne 'misc_param') {
-	$project_worksheet->write(0, $col, $field);
-	$project_worksheet->write(1, $col, $field_definitions{$field});
-	if($field eq 'project_funding' && $cgi->param("project_project_funding") eq 'Other - enter text') {
-	  $project_worksheet->write(2, $col, $cgi->param("project_other_funding"));
-	} elsif($field eq 'project_description' &&
-		$cgi->param("project_project_description") eq 'This project explores ... with xxx samples from nn different locations...') {
-	  # Do nothing here.  We just want to prevent the default project_description text from being entered.
-	} else {
-	  $project_worksheet->write(2, $col, $cgi->param("project_$field"));
-	}
-	++$col;
-      }
+  for(my $i=1; $i<=10; ++$i) {
+    my $field = "misc_param";
+    if($i > 1) { $field = "misc_param_$i"; }
+    if($cgi->param("project_$field\_checkbox")) {
+      $project_worksheet->write(0, $col, $field);
+      $project_worksheet->write(1, $col, $field_definitions{'misc_param'});
+      $project_worksheet->write(2, $col, decode("utf8", $cgi->param("project_$field")));
+      ++$col;
     }
+  }
 
-    for(my $i=1; $i<=10; ++$i) {
-      my $field = "misc_param";
-      if($i > 1) { $field = "misc_param_$i"; }
-      if($cgi->param("project_$field\_checkbox")) {
-        $project_worksheet->write(0, $col, $field);
-        $project_worksheet->write(1, $col, $field_definitions{'misc_param'});
-        $project_worksheet->write(2, $col, $cgi->param("project_$field"));
-        ++$col;
-      }
+  # sample worksheet ###########################
+  my $sample_worksheet = $workbook->add_worksheet('sample');
+
+  my $sample_count = $cgi->param('sample_count');
+  my @req_sample_fields = ();
+  my @opt_sample_fields = ();
+  %field_definitions = ();
+  foreach my $field (keys %{$json_meta_template->{'sample'}{'sample'}}) {
+    if($json_meta_template->{'sample'}{'sample'}{$field}{'required'} == 1 && $field ne 'sample_name') {
+      push @req_sample_fields, $field;
+    } else {
+      push @opt_sample_fields, $field;
     }
+    $field_definitions{$field} = $json_meta_template->{'sample'}{'sample'}{$field}{'definition'};
+  }
 
-    # sample worksheet ###########################
-    my $sample_worksheet = $workbook->add_worksheet('sample');
-
-    my $sample_count = $cgi->param('sample_count');
-    my @req_sample_fields = ();
-    my @opt_sample_fields = ();
-    %field_definitions = ();
-    foreach my $field (keys %{$json_meta_template->{'sample'}{'sample'}}) {
-      if($json_meta_template->{'sample'}{'sample'}{$field}{'required'} == 1) {
-        push @req_sample_fields, $field;
+  $col = 0;
+  foreach my $field ('sample_name', sort @req_sample_fields) {
+    $sample_worksheet->write(0, $col, $field, $format);
+    $sample_worksheet->write(1, $col, $field_definitions{$field});
+    for(my $sample_counter=1; $sample_counter<=$sample_count; ++$sample_counter) {
+      if($field eq 'sample_name') {
+        $sample_worksheet->write(1+$sample_counter, $col, "Sample$sample_counter");
       } else {
-        push @opt_sample_fields, $field;
+        $sample_worksheet->write(1+$sample_counter, $col, decode("utf8", $cgi->param("sample_$field")));
       }
-      $field_definitions{$field} = $json_meta_template->{'sample'}{'sample'}{$field}{'definition'};
+    }
+    ++$col;
+  }
+
+  foreach my $field (sort @opt_sample_fields) {
+    if($cgi->param("sample_$field\_checkbox") && $field ne 'misc_param') {
+      $sample_worksheet->write(0, $col, $field);
+      $sample_worksheet->write(1, $col, $field_definitions{$field});
+      for(my $sample_counter=1; $sample_counter<=$sample_count; ++$sample_counter) {
+        $sample_worksheet->write(1+$sample_counter, $col, decode("utf8", $cgi->param("sample_$field")));
+      }
+      ++$col;
+    }
+  }
+
+  for(my $i=1; $i<=10; ++$i) {
+    my $field = "misc_param";
+    if($i > 1) { $field = "misc_param_$i"; }
+    if($cgi->param("sample_$field\_checkbox")) {
+      $sample_worksheet->write(0, $col, $field);
+      $sample_worksheet->write(1, $col, $field_definitions{'misc_param'});
+      for(my $sample_counter=1; $sample_counter<=$sample_count; ++$sample_counter) {
+        $sample_worksheet->write(1+$sample_counter, $col, decode("utf8", $cgi->param("sample_$field")));
+      }
+      ++$col;
+    }
+  }
+
+  # library worksheets #########################
+  my @lib_list = keys %{$json_meta_template->{'library'}};
+  foreach my $lib (sort @lib_list) {
+    my $lib_count = $cgi->param($lib."_count");
+    unless($lib_count > 0) {
+      next;
+    }
+    my $library_worksheet = $workbook->add_worksheet("library $lib");
+
+    my @req_library_fields = ();
+    my @opt_library_fields = ();
+    %field_definitions = ();
+    foreach my $field (keys %{$json_meta_template->{'library'}{$lib}}) {
+      if($json_meta_template->{'library'}{$lib}{$field}{'required'} == 1 && $field !~ /^\S+_name$/) {
+        push @req_library_fields, $field;
+      } else {
+        push @opt_library_fields, $field;
+      }
+      $field_definitions{$field} = $json_meta_template->{'library'}{$lib}{$field}{'definition'};
     }
 
     $col = 0;
-    foreach my $field (sort @req_sample_fields) {
-      $sample_worksheet->write(0, $col, $field, $format);
-      $sample_worksheet->write(1, $col, $field_definitions{$field});
+    foreach my $field ('sample_name', 'metagenome_name', sort @req_library_fields) {
+      $library_worksheet->write(0, $col, $field, $format);
+      $library_worksheet->write(1, $col, $field_definitions{$field});
       for(my $sample_counter=1; $sample_counter<=$sample_count; ++$sample_counter) {
-        if($field eq 'sample_name') {
-          $sample_worksheet->write(1+$sample_counter, $col, "Sample$sample_counter");
-        } else {
-          $sample_worksheet->write(1+$sample_counter, $col, $cgi->param("sample_$field"));
+        for(my $lib_counter=1; $lib_counter<=$lib_count; ++$lib_counter) {
+          if($field eq 'sample_name') {
+            $library_worksheet->write(1+$lib_counter+(($sample_counter-1)*$lib_count), $col, "Sample$sample_counter");
+          } elsif($field eq 'investigation_type') {
+            $library_worksheet->write(1+$lib_counter+(($sample_counter-1)*$lib_count), $col, "$lib");
+          } else {
+            $library_worksheet->write(1+$lib_counter+(($sample_counter-1)*$lib_count), $col, decode("utf8", $cgi->param($lib."_".$field)));
+          }
         }
       }
       ++$col;
     }
 
-    foreach my $field (sort @opt_sample_fields) {
-      if($cgi->param("sample_$field\_checkbox") && $field ne 'misc_param') {
-        $sample_worksheet->write(0, $col, $field);
-        $sample_worksheet->write(1, $col, $field_definitions{$field});
-        for(my $sample_counter=1; $sample_counter<=$sample_count; ++$sample_counter) {
-          $sample_worksheet->write(1+$sample_counter, $col, $cgi->param("sample_$field"));
+    sort_opt_library_fields(\@opt_library_fields);
+    foreach my $field (@opt_library_fields) {
+      if($field eq 'assembly') {
+        my @info = ();
+        foreach my $sub_field ("assembly_program", "error_rate", "assembly_comments") {
+          if($cgi->param("$lib\_$sub_field\_checkbox")) {
+            if($sub_field eq "error_rate" && $cgi->param("$lib\_$sub_field")) {
+              push @info, $cgi->param("$lib\_$sub_field")." errors/kbp";
+            } elsif($cgi->param("$lib\_$sub_field")) {
+              push @info, $cgi->param("$lib\_$sub_field");
+            }
+          }
         }
-        ++$col;
-      }
-    }
-
-    for(my $i=1; $i<=10; ++$i) {
-      my $field = "misc_param";
-      if($i > 1) { $field = "misc_param_$i"; }
-      if($cgi->param("sample_$field\_checkbox")) {
-        $sample_worksheet->write(0, $col, $field);
-        $sample_worksheet->write(1, $col, $field_definitions{'misc_param'});
-        $sample_worksheet->write(2, $col, $cgi->param("sample_$field"));
-        ++$col;
-      }
-    }
-
-    # library worksheets #########################
-    my @lib_list = keys %{$json_meta_template->{'library'}};
-    foreach my $lib (sort @lib_list) {
-      my $lib_count = $cgi->param($lib."_count");
-      unless($lib_count > 0) {
-        next;
-      }
-      my $library_worksheet = $workbook->add_worksheet("library $lib");
-
-      my @req_library_fields = ();
-      my @opt_library_fields = ();
-      %field_definitions = ();
-      foreach my $field (keys %{$json_meta_template->{'library'}{$lib}}) {
-        if($json_meta_template->{'library'}{$lib}{$field}{'required'} == 1) {
-          push @req_library_fields, $field;
-        } else {
-          push @opt_library_fields, $field;
-        }
-        $field_definitions{$field} = $json_meta_template->{'library'}{$lib}{$field}{'definition'};
-      }
-
-      $col = 0;
-      foreach my $field (sort @req_library_fields) {
-        $library_worksheet->write(0, $col, $field, $format);
+        my $str = join(" -- ", @info);
+        $library_worksheet->write(0, $col, $field);
         $library_worksheet->write(1, $col, $field_definitions{$field});
         for(my $sample_counter=1; $sample_counter<=$sample_count; ++$sample_counter) {
           for(my $lib_counter=1; $lib_counter<=$lib_count; ++$lib_counter) {
-            if($field eq 'sample_name') {
-              $library_worksheet->write(1+$lib_counter+(($sample_counter-1)*$lib_count), $col, "Sample$sample_counter");
-            } elsif($field eq 'investigation_type') {
-              $library_worksheet->write(1+$lib_counter+(($sample_counter-1)*$lib_count), $col, "$lib");
-            } else {
-              $library_worksheet->write(1+$lib_counter+(($sample_counter-1)*$lib_count), $col, $cgi->param($lib."_".$field));
-            }
+            $library_worksheet->write(1+$lib_counter+(($sample_counter-1)*$lib_count), $col, decode("utf8", $str));
+          }
+        }
+        ++$col;
+      } elsif($cgi->param("$lib\_$field\_checkbox") && $field ne 'misc_param') {
+        $library_worksheet->write(0, $col, $field);
+        $library_worksheet->write(1, $col, $field_definitions{$field});
+        for(my $sample_counter=1; $sample_counter<=$sample_count; ++$sample_counter) {
+          for(my $lib_counter=1; $lib_counter<=$lib_count; ++$lib_counter) {
+            $library_worksheet->write(1+$lib_counter+(($sample_counter-1)*$lib_count), $col, decode("utf8", $cgi->param($lib."_".$field)));
           }
         }
         ++$col;
       }
-
-      sort_opt_library_fields(\@opt_library_fields);
-      foreach my $field (@opt_library_fields) {
-        if($field eq 'assembly') {
-          my @info = ();
-          foreach my $sub_field ("assembly_program", "error_rate", "assembly_comments") {
-            if($cgi->param("$lib\_$sub_field\_checkbox")) {
-              if($sub_field eq "error_rate" && $cgi->param("$lib\_$sub_field")) {
-                push @info, $cgi->param("$lib\_$sub_field")." errors/kbp";
-              } elsif($cgi->param("$lib\_$sub_field")) {
-                push @info, $cgi->param("$lib\_$sub_field");
-              }
-            }
-          }
-          my $str = join(" -- ", @info);
-          $library_worksheet->write(0, $col, $field);
-          $library_worksheet->write(1, $col, $field_definitions{$field});
-          for(my $sample_counter=1; $sample_counter<=$sample_count; ++$sample_counter) {
-            for(my $lib_counter=1; $lib_counter<=$lib_count; ++$lib_counter) {
-              $library_worksheet->write(1+$lib_counter+(($sample_counter-1)*$lib_count), $col, $str);
-            }
-          }
-          ++$col;
-        } elsif($cgi->param("$lib\_$field\_checkbox") && $field ne 'misc_param') {
-          $library_worksheet->write(0, $col, $field);
-          $library_worksheet->write(1, $col, $field_definitions{$field});
-          for(my $sample_counter=1; $sample_counter<=$sample_count; ++$sample_counter) {
-            for(my $lib_counter=1; $lib_counter<=$lib_count; ++$lib_counter) {
-              $library_worksheet->write(1+$lib_counter+(($sample_counter-1)*$lib_count), $col, $cgi->param($lib."_".$field));
-            }
-          }
-          ++$col;
-        }
-      }
-
-      for(my $i=1; $i<=10; ++$i) {
-        my $field = "misc_param";
-        if($i > 1) { $field = "misc_param_$i"; }
-        if($cgi->param("$lib\_$field\_checkbox")) {
-          $library_worksheet->write(0, $col, $field);
-          $library_worksheet->write(1, $col, $field_definitions{'misc_param'});
-          $library_worksheet->write(2, $col, $cgi->param("$lib\_$field"));
-          ++$col;
-        }
-      }
     }
 
-    # ep worksheet ###############################
-    my $ep = $cgi->param("env_package");
-    my $ep_worksheet = $workbook->add_worksheet("ep $ep");
-
-    my @req_ep_fields = ();
-    my @opt_ep_fields = ();
-    %field_definitions = ();
-    foreach my $field (keys %{$json_meta_template->{'ep'}{$ep}}) {
-      if($json_meta_template->{'ep'}{$ep}{$field}{'required'} == 1) {
-        push @req_ep_fields, $field;
-      } else {
-        push @opt_ep_fields, $field;
-      }
-      $field_definitions{$field} = $json_meta_template->{'ep'}{$ep}{$field}{'definition'};
-    }
-
-    $col = 0;
-    foreach my $field (sort @req_ep_fields) {
-      $ep_worksheet->write(0, $col, $field, $format);
-      $ep_worksheet->write(1, $col, $field_definitions{$field});
-      for(my $sample_counter=1; $sample_counter<=$sample_count; ++$sample_counter) {
-        if($field eq 'sample_name') {
-          $ep_worksheet->write(1+$sample_counter, $col, "Sample$sample_counter");
+    for(my $i=1; $i<=10; ++$i) {
+      my $field = "misc_param";
+      if($i > 1) { $field = "misc_param_$i"; }
+      if($cgi->param("$lib\_$field\_checkbox")) {
+        $library_worksheet->write(0, $col, $field);
+        $library_worksheet->write(1, $col, $field_definitions{'misc_param'});
+        for(my $sample_counter=1; $sample_counter<=$sample_count; ++$sample_counter) {
+          for(my $lib_counter=1; $lib_counter<=$lib_count; ++$lib_counter) {
+            $library_worksheet->write(1+$lib_counter+(($sample_counter-1)*$lib_count), $col, decode("utf8", $cgi->param("$lib\_$field")));
+          }
         }
-      }
-      ++$col;
-    }
-
-    foreach my $field (sort @opt_ep_fields) {
-      if($cgi->param("ep_$field\_checkbox")) {
-        $ep_worksheet->write(0, $col, $field);
-        $ep_worksheet->write(1, $col, $field_definitions{$field});
         ++$col;
       }
     }
-
-    ##############################################
-
-    $workbook->close();
-  } else {
-    print "Could not generate file\n";
   }
-#  print "Download file here: <a href='metagenomics.cgi?page=MetaDataHelpTool&action=download&filename=$filename'>$filename</a>\n";
-  print "Download file here: <a href='index.cgi?update=download&filename=$filename'>$filename</a>\n";
+
+  # ep worksheet ###############################
+  my $ep = $cgi->param("env_package");
+  my $ep_worksheet = $workbook->add_worksheet("ep $ep");
+
+  my @req_ep_fields = ();
+  my @opt_ep_fields = ();
+  %field_definitions = ();
+  foreach my $field (keys %{$json_meta_template->{'ep'}{$ep}}) {
+    if($json_meta_template->{'ep'}{$ep}{$field}{'required'} == 1) {
+      push @req_ep_fields, $field;
+    } else {
+      push @opt_ep_fields, $field;
+    }
+    $field_definitions{$field} = $json_meta_template->{'ep'}{$ep}{$field}{'definition'};
+  }
+
+  $col = 0;
+  foreach my $field (sort @req_ep_fields) {
+    $ep_worksheet->write(0, $col, $field, $format);
+    $ep_worksheet->write(1, $col, $field_definitions{$field});
+    for(my $sample_counter=1; $sample_counter<=$sample_count; ++$sample_counter) {
+      if($field eq 'sample_name') {
+        $ep_worksheet->write(1+$sample_counter, $col, "Sample$sample_counter");
+      }
+    }
+    ++$col;
+  }
+
+  foreach my $field (sort @opt_ep_fields) {
+    $ep_worksheet->write(0, $col, $field);
+    $ep_worksheet->write(1, $col, $field_definitions{$field});
+    ++$col;
+  }
+
+  ##############################################
+
+  $workbook->close();
+
+  my $print_filename = $filename;
+  $print_filename =~ s/^.*\/(.*)/$1/;
+  print "Download file here: <a href='index.cgi?update=download&filename=$filename'>$print_filename</a>\n";
 }
 
 sub download {
   my $filename = $cgi->param('filename');
-  my $file = "./Tmp/$filename";
-  if (open(FH, $file)) {
+  if (open(FH, "./$filename")) {
     my $content = "";
     while (<FH>) {
       $content .= $_;
@@ -1062,7 +1058,9 @@ sub download {
 
     print "Content-Type:application/x-download\n";
     print "Content-Length: " . length($content) . "\n";
-    print "Content-Disposition:attachment;filename=".$filename."\n\n";
+    my $print_filename = $filename;
+    $print_filename =~ s/^.*\/(.*)/$1/;
+    print "Content-Disposition:attachment;filename=".$print_filename."\n\n";
     print $content;
 
     exit;
@@ -1096,7 +1094,7 @@ sub print_field {
 
   my $value = "";
   if($previous_project ne "" && exists $json_project_data->{'metadata'}{$field} && $json_project_data->{'metadata'}{$field} ne " - ") {
-    $value = $json_project_data->{'metadata'}{$field};
+    $value = encode_entities(decode("utf8", $json_project_data->{'metadata'}{$field}));
   }
 
   if($previous_project ne "" && $field_level eq 'project' && $field eq 'mgrast_id') {
@@ -1104,16 +1102,16 @@ sub print_field {
   }
 
   # Note that if the user is logged in, and they are the pi, their name and email will override that of the $previous_project
-  if($user && ($contact_status eq "both" || $contact_status eq "pi") &&
-     ($field eq 'PI_firstname' || $field eq 'PI_lastname' || $field eq 'PI_email')) {
-    my $tmp = $field;
-    $tmp =~ s/PI_(.*)/$1/;
-    $value = $user->{$tmp};
-  }
+#  if($user && ($contact_status eq "both" || $contact_status eq "pi") &&
+#     ($field eq 'PI_firstname' || $field eq 'PI_lastname' || $field eq 'PI_email')) {
+#    my $tmp = $field;
+#    $tmp =~ s/PI_(.*)/$1/;
+#    $value = $user->{$tmp};
+#  }
 
-  if($user && ($contact_status eq "both" || $contact_status eq "tech")) {
-    $value = $user->{$field};
-  }
+#  if($user && ($contact_status eq "both" || $contact_status eq "tech")) {
+#    $value = $user->{$field};
+#  }
 
   my $displayed_field = "";
   if($field_level eq 'project') {
@@ -1386,22 +1384,22 @@ sub base_template {
   <body onload="showHideOtherProjectFunding('project_project_funding', 'project_other_funding_div');">
   <div id="header"><a href="metagenomics.cgi?page=Home" style="border: none;">
     <img style="float: left; 
-		height: 80px; 
-		margin-left: 40px;
-		margin-top: 10px;" 
-	 src="./Html/MGRAST_logo.png" alt="MG-RAST Metagenomics Analysis Server" />
+                height: 80px; 
+                margin-left: 40px;
+                margin-top: 10px;" 
+         src="./Html/MGRAST_logo.png" alt="MG-RAST Metagenomics Analysis Server" />
 </a>
     <div id="nav_login_box">
       <div id="top_nav">    
-	<div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=Home"><img src='./Html/mg-home.png' style='width: 20px; height: 20px;' title='Home'></a></div>
-	<div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=MetagenomeSelect"><img src='./Html/mgrast_globe.png' style='width: 20px; height: 20px;' title='Browse'></a></div>
-	<div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=Analysis"><img src='./Html/analysis.gif' style='width: 20px; height: 20px;' title='Analyze'></a></div>
-	<div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=MetagenomeSearch"><img src='./Html/lupe.png' style='width: 20px; height: 20px;' title='Search'></a></div>
-	<br>
-	<div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=DownloadMetagenome"><img src='./Html/mg-download.png' style='width: 20px; height: 20px;' title=Download></a></div>
-    	<div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=Upload"><img src='./Html/mg-upload.png' style='width: 20px; height: 20px;' title='Upload'></a></div>
-	<div id="top_nav_links"><a class= "nav_top" href="http://blog.metagenomics.anl.gov/howto/" target=_blank><img src='./Html/mg-help.png' style='width: 20px; height: 20px;' title='Support'></a></div>
-	<div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=Contact"><img src='./Html/mg-contact.png' style='width: 20px; height: 20px;' title='Contact'></a></div>
+        <div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=Home"><img src='./Html/mg-home.png' style='width: 20px; height: 20px;' title='Home'></a></div>
+        <div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=MetagenomeSelect"><img src='./Html/mgrast_globe.png' style='width: 20px; height: 20px;' title='Browse'></a></div>
+        <div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=Analysis"><img src='./Html/analysis.gif' style='width: 20px; height: 20px;' title='Analyze'></a></div>
+        <div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=MetagenomeSearch"><img src='./Html/lupe.png' style='width: 20px; height: 20px;' title='Search'></a></div>
+        <br>
+        <div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=DownloadMetagenome"><img src='./Html/mg-download.png' style='width: 20px; height: 20px;' title=Download></a></div>
+            <div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=Upload"><img src='./Html/mg-upload.png' style='width: 20px; height: 20px;' title='Upload'></a></div>
+        <div id="top_nav_links"><a class= "nav_top" href="http://blog.metagenomics.anl.gov/howto/" target=_blank><img src='./Html/mg-help.png' style='width: 20px; height: 20px;' title='Support'></a></div>
+        <div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=Contact"><img src='./Html/mg-contact.png' style='width: 20px; height: 20px;' title='Contact'></a></div>
       </div>
     </div>
   </div>
