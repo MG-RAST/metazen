@@ -17,7 +17,7 @@ my $json = new JSON();
 my $session_id = $cgi->cookie('WebSession');
 #my $user;
 
-my $url = "http://dunkirk.mcs.anl.gov/~jbischof/mgrast/api.cgi/metadata/template";
+my $url = "http://api.metagenomics.anl.gov/metadata/template";
 my $ua = LWP::UserAgent->new;
 my $res = $ua->get($url);
 
@@ -35,7 +35,7 @@ my $contact_status = $cgi->param('contact_status') ? $cgi->param('contact_status
 
 my $json_project_data;
 if ($previous_project ne "") {
-  my $url = "http://dunkirk.mcs.anl.gov/~jbischof/mgrast/api.cgi/project/$previous_project";
+  my $url = "http://api.metagenomics.anl.gov/project/$previous_project";
   my $ua = LWP::UserAgent->new;
   my $res = $ua->get($url, 'user_auth' => $session_id);
   $json_project_data = $json->decode($res->content); # Returns an array of hashes with project name, id, and pi
@@ -93,7 +93,7 @@ print close_template();
 
 
 sub print_prefill_options {
-  my $url = "http://dunkirk.mcs.anl.gov/~jbischof/mgrast/api.cgi/project?display=name&display=pi&display=id";
+  my $url = "http://api.metagenomics.anl.gov/project?display=name&display=pi&display=id";
   my $ua = LWP::UserAgent->new;
 
   my $res = $ua->get($url, 'user_auth' => $session_id);
