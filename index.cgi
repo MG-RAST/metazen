@@ -17,7 +17,7 @@ my $json = new JSON();
 my $session_id = $cgi->cookie('WebSession');
 #my $user;
 
-my $url = "http://api.metagenomics.anl.gov/metadata/template";
+my $url = "http://dunkirk.mcs.anl.gov/~jbischof/mgrast/api.cgi/metadata/template";
 my $ua = LWP::UserAgent->new;
 my $res = $ua->get($url);
 
@@ -717,9 +717,11 @@ sub print_bottom_of_form {
           <table cellpadding=8 border=0>
             <tr>
               <td style='vertical-align:middle;'><input type='button' name='generate_spreadsheet' class='btn' value='click to generate spreadsheet' onclick=\"execute_ajax('generate_excel_spreadsheet', 'spreadsheet_generation_status_div', 'metadata_form');\"></td>
-              <td style='vertical-align:middle;'><div id='spreadsheet_generation_status_div'>&nbsp;</div></td>
             </tr>
           </table>
+          <br />
+          <div id='spreadsheet_generation_status_div'>
+          </div>
           </ul>\n";
 
   print $help."
@@ -1045,7 +1047,17 @@ sub generate_excel_spreadsheet {
 
   my $print_filename = $filename;
   $print_filename =~ s/^.*\/(.*)/$1/;
-  print "Download file here: <a href='index.cgi?update=download&filename=$filename'>$print_filename</a>\n";
+  
+  print "
+          <table>
+            <tr>
+              <td>Download file here: <a href='index.cgi?update=download&filename=$filename'>$print_filename</a></td>
+            </tr>
+            <tr><td>&nbsp;</td></tr>
+            <tr>
+              <td>NOTE: Once you have downloaded and filled out your metadata spreadsheet you can head over to the <a href=\"http://metagenomics.anl.gov/metagenomics.cgi?page=Upload\">upload page</a> and upload it under \"Prepare Data -> 2. upload files\".  After it is validated, it should appear under \"Data Submission -> 1. select metadata file\".</td>
+            </tr>
+          </table>\n";
 }
 
 sub download {
@@ -1278,7 +1290,7 @@ sub print_field {
       $input_field = "<td>".$cgi->popup_menu( -name => "$field_name", -values => \@values, -style=> "width:205px;", -default => '' )."</td>";
     } elsif($field_level eq 'library' && $field eq 'seq_meth') {
       my @values = ('', '454', 'ABI-SOLiD', 'Illumina', 'Ion Torrent', 'Sanger', 'Other');
-      $input_field = "<td>".$cgi->popup_menu( -name => "$field_name", -values => \@values, -style=> "width:205px;", -default => '' )."</td>";
+      $input_field = "<td>".$cgi->popup_menu( -name => "$field_name", -values => \@values, -style=> "width:205px;", -default => '', -onChange => "updateSeqMakeModel('$field_sub_level');" )."</td>";
     } elsif($field_level eq 'library' && $field eq 'domain') {
       my @values = ('', 'Archaea', 'Bacteria', 'Eukarya');
       $input_field = "<td>".$cgi->popup_menu( -name => "$field_name", -values => \@values, -style=> "width:205px;", -default => '' )."</td>";
@@ -1382,7 +1394,7 @@ sub base_template {
 
 
   <body onload="showHideOtherProjectFunding('project_project_funding', 'project_other_funding_div');">
-  <div id="header"><a href="metagenomics.cgi?page=Home" style="border: none;">
+  <div id="header"><a href="http://metagenomics.anl.gov/metagenomics.cgi?page=Home" style="border: none;">
     <img style="float: left; 
                 height: 80px; 
                 margin-left: 40px;
@@ -1391,15 +1403,15 @@ sub base_template {
 </a>
     <div id="nav_login_box">
       <div id="top_nav">    
-        <div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=Home"><img src='./Html/mg-home.png' style='width: 20px; height: 20px;' title='Home'></a></div>
-        <div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=MetagenomeSelect"><img src='./Html/mgrast_globe.png' style='width: 20px; height: 20px;' title='Browse'></a></div>
-        <div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=Analysis"><img src='./Html/analysis.gif' style='width: 20px; height: 20px;' title='Analyze'></a></div>
-        <div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=MetagenomeSearch"><img src='./Html/lupe.png' style='width: 20px; height: 20px;' title='Search'></a></div>
+        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=Home"><img src='./Html/mg-home.png' style='width: 20px; height: 20px;' title='Home'></a></div>
+        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=MetagenomeSelect"><img src='./Html/mgrast_globe.png' style='width: 20px; height: 20px;' title='Browse'></a></div>
+        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=Analysis"><img src='./Html/analysis.gif' style='width: 20px; height: 20px;' title='Analyze'></a></div>
+        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=MetagenomeSearch"><img src='./Html/lupe.png' style='width: 20px; height: 20px;' title='Search'></a></div>
         <br>
-        <div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=DownloadMetagenome"><img src='./Html/mg-download.png' style='width: 20px; height: 20px;' title=Download></a></div>
-            <div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=Upload"><img src='./Html/mg-upload.png' style='width: 20px; height: 20px;' title='Upload'></a></div>
+        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=DownloadMetagenome"><img src='./Html/mg-download.png' style='width: 20px; height: 20px;' title=Download></a></div>
+            <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=Upload"><img src='./Html/mg-upload.png' style='width: 20px; height: 20px;' title='Upload'></a></div>
         <div id="top_nav_links"><a class= "nav_top" href="http://blog.metagenomics.anl.gov/howto/" target=_blank><img src='./Html/mg-help.png' style='width: 20px; height: 20px;' title='Support'></a></div>
-        <div id="top_nav_links"><a class= "nav_top" href="metagenomics.cgi?page=Contact"><img src='./Html/mg-contact.png' style='width: 20px; height: 20px;' title='Contact'></a></div>
+        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=Contact"><img src='./Html/mg-contact.png' style='width: 20px; height: 20px;' title='Contact'></a></div>
       </div>
     </div>
   </div>
