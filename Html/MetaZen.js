@@ -41,6 +41,23 @@ function showHideOtherProjectFunding (dropdownID, divID) {
   }
 }
 
+// Function to update sequencing machine make and model based on the input sequencing method.
+function updateSeqMakeModel (lib_type, seq_make_div_name, seq_model_div_name) {
+  var seq_meth = document.forms['metadata_form'].elements[lib_type+"_seq_meth"];
+  var seq_make_div = document.getElementById(lib_type+"_seq_make_div");
+  var seq_model_div = document.getElementById(lib_type+"_seq_model_div");
+  if(seq_meth.value == '454') {
+    seq_make_div.innerHTML = "<input type=\"text\" displayfield=\"Sequencer Make\" value=\"454 Life Sciences, a Roche Company\" name=\""+lib_type+"_seq_make\" style=\"width:195px;\">";
+    seq_model_div.innerHTML = "<select style=\"width:205px;\" name=\""+lib_type+"_seq_model\"> <option value=\"\" selected=\"selected\"></option> <option value=\"GS-FLX+\">GS-FLX+</option> <option value=\"GS-FLX\">GS-FLX</option> <option value=\"GS-Junior\">GS-Junior</option> <option value=\"GS-20\">GS-20</option> </select>";
+  } else if(seq_meth.value == 'Illumina') {
+    seq_make_div.innerHTML = "<input type=\"text\" displayfield=\"Sequencer Make\" value=\"Illumina\" name=\""+lib_type+"_seq_make\" style=\"width:195px;\">";
+    seq_model_div.innerHTML = "<select style=\"width:205px;\" name=\""+lib_type+"_seq_model\"> <option value=\"\" selected=\"selected\"></option> <option value=\"GA-IIx\">GA-IIx</option> <option value=\"HiSeq\">HiSeq</option> <option value=\"MiSeq\">MiSeq</option> </select>";
+  } else {
+    seq_make_div.innerHTML = "<input type=\"text\" displayfield=\"Sequencer Make\" value=\"\" name=\""+lib_type+"_seq_make\" style=\"width:195px;\">";
+    seq_model_div.innerHTML = "<input type=\"text\" displayfield=\"Sequencer Model\" value=\"\" name=\""+lib_type+"_seq_model\" style=\"width:195px;\">";
+  }
+}
+
 // Function to get the selected concept names from the bioontology widgets and put them in text fields.
 function setEnvField (ontologyTreeID) {
   var conceptName = null;
@@ -97,7 +114,7 @@ function execute_ajax(func, target, form) {
 
   if(func == 'print_top_of_form') {
     if(document.forms['prefill_form'].elements['previous_project'].value == 'none') {
-      document.getElementById('prefill_status').innerHTML = "<p style='color:red'>Form filled with your contact information.</p>";
+      document.getElementById('prefill_status').innerHTML = "<p style='color:red'>Please select a previous project to prefill information.</p>";
     } else {
       document.getElementById('prefill_status').innerHTML = "<p style='color:red'>Form filled with project and sample set information from previous project.</p>";
     }
