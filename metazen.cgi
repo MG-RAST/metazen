@@ -1051,7 +1051,7 @@ sub generate_excel_spreadsheet {
   print "
           <table>
             <tr>
-              <td>Download file here: <a href='index.cgi?update=download&filename=$filename'>$print_filename</a></td>
+              <td>Download file here: <a href='metazen.cgi?update=download&filename=$filename'>$print_filename</a></td>
             </tr>
             <tr><td>&nbsp;</td></tr>
             <tr>
