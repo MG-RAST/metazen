@@ -15,7 +15,6 @@ my $cgi = new CGI();
 my $json = new JSON();
 
 my $session_id = $cgi->cookie('WebSession');
-#my $user;
 
 my $url = "http://api.metagenomics.anl.gov/metadata/template";
 my $ua = LWP::UserAgent->new;
@@ -887,6 +886,8 @@ sub generate_excel_spreadsheet {
     for(my $sample_counter=1; $sample_counter<=$sample_count; ++$sample_counter) {
       if($field eq 'sample_name') {
         $sample_worksheet->write(1+$sample_counter, $col, "Sample$sample_counter");
+      } elsif($field eq 'env_package') {
+        $sample_worksheet->write(1+$sample_counter, $col, $cgi->param("env_package"));
       } else {
         $sample_worksheet->write(1+$sample_counter, $col, decode("utf8", $cgi->param("sample_$field")));
       }
