@@ -539,7 +539,8 @@ sub print_bottom_of_form {
               <br />
               <p>Please enter only information that is consistent across all ".$lib_descriptions->{$lib}." libraries. This data will be pre-filled in the spreadsheet.</p>
               <p>Required ".$lib_descriptions->{$lib}." library fields are marked with a blue asterisk (&nbsp;<font style='color:blue;font-size:20px;vertical-align:bottom;'>*</font>&nbsp;), because unlike required project fields, they can be entered after downloading your spreadsheet.</p>
-              <p>The selected (checked) optional fields will be included in your spreadsheet whether you complete those fields now or after download.</p>\n";
+              <p>The selected (checked) optional fields will be included in your spreadsheet whether you complete those fields now or after download.</p>
+              <p>The \"Metagenome Name\" must be made unique after downloading your spreadsheet.  Also, please include the \"File Name\" if this is a new project.</p>\n";
 
     my @req_library_fields = ();
     my @opt_library_fields = ();
@@ -1146,11 +1147,11 @@ sub print_field {
     if($field_level eq 'project') {
       $color = "red";
     }
-    $req_opt_html = "&nbsp;<font style='color:$color;font-size:20px;vertical-align:bottom;'>*</font>&nbsp;&nbsp;";
+    $req_opt_html = "<td style='width:195px;'>&nbsp;<font style='color:$color;font-size:20px;vertical-align:bottom;'>*</font>&nbsp;&nbsp;";
   } else {
     my $checked = "";
     if($select_all_flag == 0) { $checked = "checked"; }
-    $req_opt_html = "<input type=\"checkbox\" name=\"$field_name\_checkbox\" selectall=\"$select_all_flag\" $checked />&nbsp;&nbsp;";
+    $req_opt_html = "<td style='vertical-align:middle;width:195px;'><input type=\"checkbox\" name=\"$field_name\_checkbox\" selectall=\"$select_all_flag\" $checked />&nbsp;&nbsp;";
   }
 
   my $project_required_field_attr = "";
@@ -1163,7 +1164,7 @@ sub print_field {
     if($field_level eq 'project') {
       return "
                       <tr>
-                        <td style='vertical-align:middle;width:195px;'>$req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
+                        $req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
                         <td style='vertical-align:middle;'><input style='width:195px;' type='text' name='$field_name' value = ''></td>
                       </tr>\n";
     } else {
@@ -1177,13 +1178,13 @@ sub print_field {
       if($cgi->param($count_field_name) && $cgi->param($count_field_name) == 1) {
         return "
                       <tr>
-                        <td style='vertical-align:middle;width:195px;'>$req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
+                        $req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
                         <td style='vertical-align:middle;'><input style='width:195px;' type='text' name='$field_name' value = ''></td>
                       </tr>\n";
       } else {
       return "
                       <tr>
-                        <td style='vertical-align:middle;width:195px;'>$req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
+                        $req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
                         <td style='vertical-align:middle;height:39px'>Must enter after download.</td>
                       </tr>\n";
       }
@@ -1192,7 +1193,7 @@ sub print_field {
     my @funds = ('', 'Alfred P. Sloan Foundation', 'Bill & Melinda Gates Foundation', 'DHS - Department of Homeland Security', 'DOD - U.S. Department of Defense', 'DOE - U.S. Department of Energy', 'European Science Foundation', 'Gordon and Betty Moore Foundation', 'NHGRI - National Human Genome Research Institute', 'NIH - National Institutes of Health', 'NSF - National Science Foundation', 'U.S. Department of Agriculture', 'Other - enter text');
     return "
                       <tr>
-                        <td style='vertical-align:middle;width:195px;padding:0px 0px 0px 1px;'>$req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
+                        <td style='vertical-align:middle;width:195px;padding:0px 0px 0px 1px;'><input type=\"checkbox\" name=\"$field_name\_checkbox\" selectall=\"$select_all_flag\" checked />&nbsp;&nbsp;$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
                         <td style='padding:0px 0px 0px 1px;'>".$cgi->popup_menu( -name => "$field_name", -values => \@funds, -default => $value, -style=> "width:205px;", -onChange => "showHideOtherProjectFunding('project_project_funding', 'project_other_funding_div');" )."</td>
                         <td>
                           <div id='project_other_funding_div' style='display:none'>
@@ -1211,7 +1212,7 @@ sub print_field {
     }
     return "
                       <tr>
-                        <td style='vertical-align:top;width:195px;padding:10px 0px 0px 0px;'>$req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
+                        <td style='vertical-align:top;width:195px;padding:10px 0px 0px 0px;'><input type=\"checkbox\" name=\"$field_name\_checkbox\" selectall=\"$select_all_flag\" checked />&nbsp;&nbsp;$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
                         <td style='vertical-align:middle;padding:3px 0px 0px 0px;' colspan=3><textarea style='width:600px;' rows=\"10\" name='$field_name'>$value</textarea></td>
                       </tr>\n";
   } elsif($field eq 'misc_param') {
@@ -1248,7 +1249,7 @@ sub print_field {
     }
     return "
                       <tr>
-                        <td style='vertical-align:middle;width:195px'>$req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
+                        $req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
                         <td style='vertical-align:middle;'><div id=\"$field_name\_div\" class=\"control-group\" style=\"margin-bottom:0px\"><input style='width:100px;' type='text' name='$field_name' value = '' displayField='$displayed_field' validate='float' onkeydown=\"return $var_text</div></td> 
                       </tr>\n";
   } elsif($field_type eq 'text') {
@@ -1275,13 +1276,13 @@ sub print_field {
     }
     return "
                       <tr>
-                        <td style='vertical-align:middle;width:195px;'>$req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
+                        $req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
                         $input_field
                       </tr>\n";
   } elsif($field_type eq 'int') {
     return "
                       <tr>
-                        <td style='vertical-align:middle;width:195px;'>$req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
+                        $req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
                         <td style='vertical-align:middle;'><input style='width:100px;' type='text' name='$field_name' value = '' onkeydown=\"return returnNumeric(event);\"> (integer value)</td>
                       </tr>\n";
   } elsif($field_type eq 'select') {
@@ -1301,13 +1302,13 @@ sub print_field {
     }
     return "
                       <tr>
-                        <td style='vertical-align:middle;width:195px;'>$req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
+                        $req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
                         $input_field
                       </tr>\n";
   } elsif($field_type eq 'email' || $field_type eq 'url') {
     return "
                       <tr>
-                        <td style='vertical-align:middle;width:195px;'>$req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
+                        $req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
                         <td style='vertical-align:middle;'><div id=\"$field_name\_div\" class=\"control-group\" style=\"margin-bottom:0px\"><input style='width:195px;' type='text' name='$field_name' $project_required_field_attr value = '$value' displayField='$displayed_field' validate='$field_type'></div></td>
                       </tr>\n";
   } elsif($field_type eq 'date') {
@@ -1319,7 +1320,7 @@ sub print_field {
     my $year = $time_data[5] + 1900;
     return "
                       <tr>
-                        <td style='vertical-align:middle;width:195px'>$req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
+                        $req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
                         <td>
                           <div class=\"input-append date\" id=\"sample_collection_date_div\" data-date=\"$year-$month-$day\" data-date-format=\"yyyy-mm-dd\">
                             <input class=\"span2\" name=\"$field_name\" displayField='$displayed_field' validate='$field_type' type=\"text\" style=\"width:100px;\" />
@@ -1330,7 +1331,7 @@ sub print_field {
   } elsif($field_type eq 'time') {
     return "
                       <tr>
-                        <td style='vertical-align:middle;width:195px'>$req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
+                        $req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
                         <td>
                           <div class=\"input-append bootstrap-timepicker-component\">
                             <input class=\"timepicker-1 input-small\" name=\"$field_name\" type=\"text\" style=\"width: 100px;\" />
@@ -1351,20 +1352,20 @@ sub print_field {
     }
     return "
                       <tr>
-                        <td style='vertical-align:middle;width:195px'>$req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
+                        $req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
                         <td>".$cgi->popup_menu( -name => "sample_$field", -values => $timezone_values, -labels => \%printed_timezone_codes, -style=> "width:205px;", -default => '' )."</td>
                       </tr>\n";
   } elsif($field_type eq 'ontology' && $field =~ /country/) {
     my $country_codes_list = country_codes();
     return "
                       <tr>
-                        <td style='vertical-align:middle;width:195px;'>$req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
+                        $req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
                         <td><div id=\"$field_name\_div\" class=\"control-group\" style=\"margin-bottom:0px\">".$cgi->popup_menu( -name => "$field_name", -values => $country_codes_list, -style=> "width:205px;", -default => $value )."</div></td>
                       </tr>\n";
   } else {
     return "
                       <tr>
-                        <td style='vertical-align:middle;width:195px;'>$req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
+                        $req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
                         <td style='vertical-align:middle;'><input style='width:195px;' type='text' name='$field_name' value = '$value'></td>
                       </tr>\n";
   }
