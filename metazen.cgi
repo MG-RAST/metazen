@@ -1378,7 +1378,7 @@ sub base_template {
 
   <head>
 
-    <title>MetaZen</title>
+    <title>MetaZen (beta version)</title>
 
     <script type="text/javascript" src="./Html/jquery.1.7.2.min.js"></script>
     <script type="text/javascript" src="./Html/bootstrap.min.js"></script>
@@ -1419,7 +1419,7 @@ sub base_template {
   </div>
   <div id="content_frame">
     <div id="page_title">
-    MetaZen
+    MetaZen (beta version)
     </div>
     <div id="content">~;
 }
