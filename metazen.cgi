@@ -1150,7 +1150,7 @@ sub print_field {
     $req_opt_html = "<td style='width:195px;'>&nbsp;<font style='color:$color;font-size:20px;vertical-align:bottom;'>*</font>&nbsp;&nbsp;";
   } else {
     my $checked = "";
-    if($select_all_flag == 0) { $checked = "checked"; }
+    if($select_all_flag == 0 || $field eq 'file_name') { $checked = "checked"; }
     $req_opt_html = "<td style='vertical-align:middle;width:195px;'><input type=\"checkbox\" name=\"$field_name\_checkbox\" selectall=\"$select_all_flag\" $checked />&nbsp;&nbsp;";
   }
 
