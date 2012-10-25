@@ -6,6 +6,8 @@ use warnings;
 use CGI;
 use JSON;
 use Encode;
+use URI::Escape;
+use Data::Dumper;
 use LWP::UserAgent;
 use HTML::Entities;
 use Spreadsheet::WriteExcel;
@@ -14,11 +16,46 @@ use File::Temp qw/ tempfile tempdir /;
 my $cgi = new CGI();
 my $json = new JSON();
 
-my $session_id = $cgi->cookie('WebSession');
+my $settings = { app_id => 'MetaZen',
+                 app_secret => 'QAX44Q7u6zS1HVtsj8AVycYQk',
+                 dialog_url => 'http://dunkirk.mcs.anl.gov/~paczian/mgrast/oAuthPPO.cgi?action=dialog',
+                 token_url => 'http://dunkirk.mcs.anl.gov/~paczian/mgrast/oAuthPPO.cgi?action=token',
+                 data_url => 'http://api.metagenomics.anl.gov/user' };
 
-my $url = "http://api.metagenomics.anl.gov/metadata/template";
+######### Code to authenticate using oAuth #################
+my $app_id = $settings->{app_id};
+my $app_secret = $settings->{app_secret};
+my $dialog_url = $settings->{dialog_url};
+my $token_url = $settings->{token_url};
+my $data_url = $settings->{data_url};
+
+my $my_url = "http://metagenomics.anl.gov/metazen.cgi";
+
+my $code = $cgi->param('code');
+
+unless (defined($code) || ($cgi->param('update'))) {
+    my $call_url = $dialog_url."&client_id=" . $app_id . "&redirect_url=" . uri_escape($my_url);
+    print $cgi->redirect( -uri => $call_url );
+    exit 0;
+}
+
+my $call_url = $token_url . "&client_id=" . $app_id . "&client_secret=" . $app_secret . "&code=" . $code;
 my $ua = LWP::UserAgent->new;
-my $res = $ua->get($url);
+my $res = $ua->get($call_url)->content;
+
+my ($access_token, $login) = $res =~ /access_token=(.*)\|(.*)/;
+
+######### Code to get user information #####################
+my $user_url = "http://api.metagenomics.anl.gov/user/$login";
+$ua = LWP::UserAgent->new;
+$res = $ua->get($user_url, 'user_auth' => $access_token);
+my $json_user_info = $json->decode($res->content);
+my $username = $json_user_info->{'firstname'}." ".$json_user_info->{'lastname'};
+
+######### Code to get metadata template ####################
+my $template_url = "http://api.metagenomics.anl.gov/metadata/template";
+$ua = LWP::UserAgent->new;
+$res = $ua->get($template_url);
 
 my $json_meta_template = $json->decode($res->content);
 my $lib_descriptions = { 'metagenome' => 'shotgun metagenome',
@@ -29,14 +66,15 @@ my $project_display_fields = &get_project_display_fields();
 my $sample_display_fields = &get_sample_display_fields();
 my $library_display_fields = &get_library_display_fields(); 
 
+######### Code to get previous project data ################
 my $previous_project = $cgi->param('previous_project') && $cgi->param('previous_project') ne "none" ? $cgi->param('previous_project') : "";
 my $contact_status = $cgi->param('contact_status') ? $cgi->param('contact_status') : "";
 
 my $json_project_data;
 if ($previous_project ne "") {
-  my $url = "http://api.metagenomics.anl.gov/project/$previous_project";
-  my $ua = LWP::UserAgent->new;
-  my $res = $ua->get($url, 'user_auth' => $session_id);
+  my $project_url = "http://api.metagenomics.anl.gov/project/$previous_project";
+  $ua = LWP::UserAgent->new;
+  $res = $ua->get($project_url, 'user_auth' => $access_token);
   $json_project_data = $json->decode($res->content); # Returns an array of hashes with project name, id, and pi
 }
 
@@ -95,7 +133,7 @@ sub print_prefill_options {
   my $url = "http://api.metagenomics.anl.gov/project?display=name&display=pi&display=id";
   my $ua = LWP::UserAgent->new;
 
-  my $res = $ua->get($url, 'user_auth' => $session_id);
+  my $res = $ua->get($url, 'user_auth' => $access_token);
 
   my $json_project_info = $json->decode($res->content); # Returns an array of hashes with project name, id, and pi
 
@@ -104,6 +142,7 @@ sub print_prefill_options {
       <br />
       <p>To prefill the project tab with information from a previous project, select a project from the drop-down menu below and click the 'prefill form' button.</p>
       <form method='post' enctype='multipart/form-data' id='prefill_form'>
+        <input type='hidden' name='code' value='$code'>
         <p>Select your previous project from which to prefill the form:
           <select name='previous_project'>
             <option value='none'>none</option>\n";
@@ -805,7 +844,9 @@ sub generate_excel_spreadsheet {
           '1. Please enter data starting with first empty row, do not overwrite pre-filled rows',
           '2. Each sample must have only one enviromental package associated with it',
           '3. Each sample must have one, but may have more than one, library associated with it',
-          '4. Library field metagenome_name must be unique for each library, and will be the name of the MG-RAST metagenome');
+          '4. Library field metagenome_name must be unique for each library, and will be the name of the MG-RAST metagenome',
+          '',
+          'This spreadsheet was generated using Metazen.');
 
   for(my $row=0; $row<@readme; ++$row) {
     $readme_worksheet->write($row, 0, $readme[$row]);
@@ -1372,8 +1413,8 @@ sub print_field {
 }
 
 sub base_template {
-    my $ajax_url = "http://dunkirk.mcs.anl.gov/~jbischof/mgrast/ajax.cg";
-    return qq~<!DOCTYPE html>
+    
+  return qq~<!DOCTYPE html>
 <html>
 
   <head>
@@ -1415,6 +1456,19 @@ sub base_template {
         <div id="top_nav_links"><a class= "nav_top" href="http://blog.metagenomics.anl.gov/howto/" target=_blank><img src='./Html/mg-help.png' style='width: 20px; height: 20px;' title='Support'></a></div>
         <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=Contact"><img src='./Html/mg-contact.png' style='width: 20px; height: 20px;' title='Contact'></a></div>
       </div>
+      <div id="login">
+        <div id='user'>
+          <div style='float:left; padding-top:4px; color: #8FBC3F; font-size: 1.4em;'>$username</div>
+          <div style='float:left;'>
+            <a href='metagenomics.cgi?page=AccountManagement'>
+              <img class='imglink' style='padding-left: 10px; height:20px;' src='http://metagenomics.anl.gov/Html/mg-account.png' title='Account Management' />
+            </a>
+            <a href='metagenomics.cgi?page=Logout'>
+              <img class='imglink' style='height:20px;' src='http://metagenomics.anl.gov//Html/mg-logout.png' title='Logout' />
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   <div id="content_frame">
@@ -1425,7 +1479,7 @@ sub base_template {
 }
 
 sub close_template {
-    return qq~
+  return qq~
     </div>
 
   </body>
@@ -1433,29 +1487,29 @@ sub close_template {
 }
 
 sub warning_message {
-    my ($message) = @_;
+  my ($message) = @_;
 
-    print $cgi->header();
-    print base_template();
-    print qq~<div class="alert alert-error">
+  print $cgi->header();
+  print base_template();
+  print qq~<div class="alert alert-error">
 <button class="close" data-dismiss="alert" type="button">x</button>
 <strong>Warning</strong><br>~;
-    print $message;
-    print qq~<br><a href="oAuth.cgi">return to home</a></div>~;
-    print close_template();    
+  print $message;
+  print qq~<br><a href="oAuth.cgi">return to home</a></div>~;
+  print close_template();    
 }
 
 sub success_message {
-    my ($message) = @_;
+  my ($message) = @_;
 
-    print $cgi->header();
-    print base_template();
-    print qq~<div class="alert alert-success">
+  print $cgi->header();
+  print base_template();
+  print qq~<div class="alert alert-success">
 <button class="close" data-dismiss="alert" type="button">x</button>
 <strong>Info</strong><br>~;
-    print $message;
-    print qq~<br><a href="oAuth.cgi">return to home</a></div>~;
-    print close_template();
+  print $message;
+  print qq~<br><a href="oAuth.cgi">return to home</a></div>~;
+  print close_template();
 }
 
 sub sort_opt_library_fields {
