@@ -1,0 +1,13 @@
+#!/bin/sh
+
+TOOL_HDR=$1
+PERL=`which perl`
+echo "#!${PERL}
+
+BEGIN {
+    unshift @INC, qw(
+              ${TOP_DIR}/conf
+	);
+}
+########################################################################
+" > ${TOOL_HDR}
