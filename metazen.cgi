@@ -1,9 +1,17 @@
 #!/soft/packages/perl/5.12.1/bin/perl
 
+BEGIN {
+    unshift @INC, qw(
+              /homes/jbischof/public_html/metazen/conf
+	);
+}
+########################################################################
+
 use strict;
 use warnings;
 
 use CGI;
+use Conf;
 use JSON;
 use Encode;
 use URI::Escape;
@@ -16,25 +24,23 @@ use File::Temp qw/ tempfile tempdir /;
 my $cgi = new CGI();
 my $json = new JSON();
 
-my $settings = { app_id => 'MetaZen',
-                 app_secret => 'QAX44Q7u6zS1HVtsj8AVycYQk',
-                 dialog_url => 'http://dunkirk.mcs.anl.gov/~paczian/mgrast/oAuthPPO.cgi?action=dialog',
-                 token_url => 'http://dunkirk.mcs.anl.gov/~paczian/mgrast/oAuthPPO.cgi?action=token',
-                 data_url => 'http://api.metagenomics.anl.gov/user' };
+my $settings = { app_id       => $Conf::app_id,
+                 app_secret   => $Conf::app_secret,
+                 dialog_url   => "$Conf::oAuth_url?action=dialog",
+                 token_url    => "$Conf::oAuth_url?action=token",
+                 redirect_url => $Conf::redirect_url };
 
 ######### Code to authenticate using oAuth #################
 my $app_id = $settings->{app_id};
 my $app_secret = $settings->{app_secret};
 my $dialog_url = $settings->{dialog_url};
 my $token_url = $settings->{token_url};
-my $data_url = $settings->{data_url};
-
-my $my_url = "http://metagenomics.anl.gov/metazen.cgi";
+my $redirect_url = $settings->{redirect_url};
 
 my $code = $cgi->param('code');
 
 unless (defined($code) || ($cgi->param('update'))) {
-    my $call_url = $dialog_url."&client_id=" . $app_id . "&redirect_url=" . uri_escape($my_url);
+    my $call_url = $dialog_url."&client_id=" . $app_id . "&redirect_url=" . uri_escape($redirect_url);
     print $cgi->redirect( -uri => $call_url );
     exit 0;
 }
