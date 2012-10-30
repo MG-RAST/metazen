@@ -21,7 +21,25 @@ my $settings = { app_id       => $Conf::app_id,
                  token_url    => "$Conf::oAuth_url?action=token",
                  redirect_url => $Conf::redirect_url };
 
-######### Code to authenticate using oAuth #################
+if ($cgi->param('update')) {
+  if ($cgi->param('update') eq 'print_top_of_form') {
+    print $cgi->header();
+    print_top_of_form();
+  } elsif ($cgi->param('update') eq 'print_bottom_of_form') {
+    print $cgi->header();
+    print_bottom_of_form();
+  } elsif ($cgi->param('update') eq 'generate_excel_spreadsheet') {
+    print $cgi->header();
+    generate_excel_spreadsheet();
+  } elsif ($cgi->param('update') eq 'search_address') {
+    print $cgi->header();
+    search_address();
+  } elsif ($cgi->param('update') eq 'download') {
+    download();
+  }
+  exit 0;
+}
+
 my $app_id = $settings->{app_id};
 my $app_secret = $settings->{app_secret};
 my $dialog_url = $settings->{dialog_url};
@@ -30,24 +48,46 @@ my $redirect_url = $settings->{redirect_url};
 
 my $code = $cgi->param('code');
 
-unless (defined($code) || ($cgi->param('update'))) {
+my $login;
+my $access_token;
+
+my $user_url = "";
+my $ua;
+my $res;
+my $json_user_info;
+my $username = "";
+
+if($cgi->cookie('Login') && $cgi->cookie('WebSession')) {
+  $login = $cgi->cookie('Login');
+  $access_token = $cgi->cookie('WebSession');
+  $user_url = "http://api.metagenomics.anl.gov/user/$login";
+  $ua = LWP::UserAgent->new;
+  $res = $ua->get($user_url, 'user_auth' => $access_token);
+  unless($res->content =~ /^ERROR/) {
+    $json_user_info = $json->decode($res->content);
+    $username = $json_user_info->{'firstname'}." ".$json_user_info->{'lastname'};
+  }
+}  
+
+if($username eq "") {
+  if(!defined($code)) {
     my $call_url = $dialog_url."&client_id=" . $app_id . "&redirect_url=" . uri_escape($redirect_url);
     print $cgi->redirect( -uri => $call_url );
     exit 0;
+  }
+
+  my $call_url = $token_url . "&client_id=" . $app_id . "&client_secret=" . $app_secret . "&code=" . $code;
+  my $ua = LWP::UserAgent->new;
+  my $res = $ua->get($call_url)->content;
+
+  ($access_token, $login) = $res =~ /access_token=(.*)\|(.*)/;
+
+  $user_url = "http://api.metagenomics.anl.gov/user/$login";
+  $ua = LWP::UserAgent->new;
+  $res = $ua->get($user_url, 'user_auth' => $access_token);
+  $json_user_info = $json->decode($res->content);
+  $username = $json_user_info->{'firstname'}." ".$json_user_info->{'lastname'};
 }
-
-my $call_url = $token_url . "&client_id=" . $app_id . "&client_secret=" . $app_secret . "&code=" . $code;
-my $ua = LWP::UserAgent->new;
-my $res = $ua->get($call_url)->content;
-
-my ($access_token, $login) = $res =~ /access_token=(.*)\|(.*)/;
-
-######### Code to get user information #####################
-my $user_url = "http://api.metagenomics.anl.gov/user/$login";
-$ua = LWP::UserAgent->new;
-$res = $ua->get($user_url, 'user_auth' => $access_token);
-my $json_user_info = $json->decode($res->content);
-my $username = $json_user_info->{'firstname'}." ".$json_user_info->{'lastname'};
 
 ######### Code to get metadata template ####################
 my $template_url = "http://api.metagenomics.anl.gov/metadata/template";
@@ -75,26 +115,11 @@ if ($previous_project ne "") {
   $json_project_data = $json->decode($res->content); # Returns an array of hashes with project name, id, and pi
 }
 
-if ($cgi->param('update')) {
-  if ($cgi->param('update') eq 'print_top_of_form') {
-    print $cgi->header();
-    print_top_of_form();
-  } elsif ($cgi->param('update') eq 'print_bottom_of_form') {
-    print $cgi->header();
-    print_bottom_of_form();
-  } elsif ($cgi->param('update') eq 'generate_excel_spreadsheet') {
-    print $cgi->header();
-    generate_excel_spreadsheet();
-  } elsif ($cgi->param('update') eq 'search_address') {
-    print $cgi->header();
-    search_address();
-  } elsif ($cgi->param('update') eq 'download') {
-    download();
-  }
-  exit 0;
-}
+my $login_cookie = CGI::Cookie->new( -name    => 'Login',
+                                     -value   => $login,
+                                     -expires => "+2d" );
 
-print $cgi->header();
+print $cgi->header( -cookie => [ $login_cookie ] );
 print base_template();
 
 print qq~
