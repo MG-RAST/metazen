@@ -4,6 +4,7 @@ TOP_DIR    := $(PWD)
 export TOP_DIR
 TOOL_HDR   := tool_hdr
 MGRAST_DIR := ../MG-RAST/site
+FILES      := $(wildcard $(TOP_DIR)/Html/*)
 
 bindir      = $(TOP_DIR)/bin
 srcdir      = $(TOP_DIR)/src
@@ -14,4 +15,5 @@ mgrast:
 	cat $(srcdir)/metazen.cgi >> metazen.cgi
 	chmod 755 metazen.cgi
 	cp metazen.cgi $(MGRAST_DIR)/CGI/metazen.cgi
-	cp Html/* $(MGRAST_DIR)/CGI/Html/.
+	mkdir -p $(MGRAST_DIR)/CGI/Tmp
+	@$(foreach FILE, $(FILES), yes n | cp -i $(FILE) $(MGRAST_DIR)/CGI/Html/ &> /dev/null;)
