@@ -31,6 +31,9 @@ my $code = $cgi->param('code');
 
 my $login;
 my $access_token;
+#if($cgi->param('access_token')) {
+#  $access_token = $cgi->param('access_token');
+#}
 
 my $user_url = "";
 my $ua;
@@ -50,7 +53,7 @@ if($cgi->cookie('Login') && $cgi->cookie('WebSession')) {
   }
 }  
 
-if($username eq "") {
+if($username eq "" ) {
   if(!defined($code)) {
     my $call_url = $dialog_url."&client_id=" . $app_id . "&redirect_url=" . uri_escape($redirect_url);
     print $cgi->redirect( -uri => $call_url );
@@ -99,6 +102,9 @@ if ($previous_project ne "") {
 my $login_cookie = CGI::Cookie->new( -name    => 'Login',
                                      -value   => $login,
                                      -expires => "+2d" );
+my $session_cookie = CGI::Cookie->new( -name    => 'WebSession',
+                                       -value   => $access_token,
+                                       -expires => "+2d" );
 
 if ($cgi->param('update')) {
   if ($cgi->param('update') eq 'print_top_of_form') {
@@ -119,7 +125,7 @@ if ($cgi->param('update')) {
   exit 0;
 }
 
-print $cgi->header( -cookie => [ $login_cookie ] );
+print $cgi->header( -cookie => [ $login_cookie, $session_cookie ] );
 print base_template();
 
 print qq~
