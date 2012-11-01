@@ -21,25 +21,6 @@ my $settings = { app_id       => $Conf::app_id,
                  token_url    => "$Conf::oAuth_url?action=token",
                  redirect_url => $Conf::redirect_url };
 
-if ($cgi->param('update')) {
-  if ($cgi->param('update') eq 'print_top_of_form') {
-    print $cgi->header();
-    print_top_of_form();
-  } elsif ($cgi->param('update') eq 'print_bottom_of_form') {
-    print $cgi->header();
-    print_bottom_of_form();
-  } elsif ($cgi->param('update') eq 'generate_excel_spreadsheet') {
-    print $cgi->header();
-    generate_excel_spreadsheet();
-  } elsif ($cgi->param('update') eq 'search_address') {
-    print $cgi->header();
-    search_address();
-  } elsif ($cgi->param('update') eq 'download') {
-    download();
-  }
-  exit 0;
-}
-
 my $app_id = $settings->{app_id};
 my $app_secret = $settings->{app_secret};
 my $dialog_url = $settings->{dialog_url};
@@ -118,6 +99,25 @@ if ($previous_project ne "") {
 my $login_cookie = CGI::Cookie->new( -name    => 'Login',
                                      -value   => $login,
                                      -expires => "+2d" );
+
+if ($cgi->param('update')) {
+  if ($cgi->param('update') eq 'print_top_of_form') {
+    print $cgi->header();
+    print_top_of_form();
+  } elsif ($cgi->param('update') eq 'print_bottom_of_form') {
+    print $cgi->header();
+    print_bottom_of_form();
+  } elsif ($cgi->param('update') eq 'generate_excel_spreadsheet') {
+    print $cgi->header();
+    generate_excel_spreadsheet();
+  } elsif ($cgi->param('update') eq 'search_address') {
+    print $cgi->header();
+    search_address();
+  } elsif ($cgi->param('update') eq 'download') {
+    download();
+  }
+  exit 0;
+}
 
 print $cgi->header( -cookie => [ $login_cookie ] );
 print base_template();
