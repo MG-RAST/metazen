@@ -21,6 +21,8 @@ my $settings = { app_id       => $Conf::app_id,
                  token_url    => "$Conf::oAuth_url?action=token",
                  redirect_url => $Conf::redirect_url };
 
+my $google_analytics = $Conf::google_analytics;
+
 my $app_id = $settings->{app_id};
 my $app_secret = $settings->{app_secret};
 my $dialog_url = $settings->{dialog_url};
@@ -1509,17 +1511,7 @@ sub base_template {
 sub close_template {
   return qq~
     </div>
-    <script type="text/javascript">
-      var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-      document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-    </script>
-    <script type="text/javascript">
-      try {
-      var pageTracker = _gat._getTracker("UA-8339940-1");
-      pageTracker._trackPageview();
-      pageTracker._trackPageLoadTime();
-      } catch(err) {}
-    </script>
+    $google_analytics
   </body>
 </html>~;
 }
