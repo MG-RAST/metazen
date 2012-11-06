@@ -33,9 +33,6 @@ my $code = $cgi->param('code');
 
 my $login;
 my $access_token;
-#if($cgi->param('access_token')) {
-#  $access_token = $cgi->param('access_token');
-#}
 
 my $user_url = "";
 my $ua;
@@ -71,8 +68,10 @@ if($username eq "" ) {
   $user_url = "http://api.metagenomics.anl.gov/user/$login";
   $ua = LWP::UserAgent->new;
   $res = $ua->get($user_url, 'user_auth' => $access_token);
-  $json_user_info = $json->decode($res->content);
-  $username = $json_user_info->{'firstname'}." ".$json_user_info->{'lastname'};
+  unless($res->content =~ /^ERROR/) {
+    $json_user_info = $json->decode($res->content);
+    $username = $json_user_info->{'firstname'}." ".$json_user_info->{'lastname'};
+  }
 }
 
 ######### Code to get metadata template ####################
