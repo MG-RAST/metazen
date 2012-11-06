@@ -17,3 +17,6 @@ mgrast:
 	cp metazen.cgi $(MGRAST_DIR)/CGI/metazen.cgi
 	mkdir -p $(MGRAST_DIR)/CGI/Tmp
 	@$(foreach FILE, $(FILES), yes n | cp -i $(FILE) $(MGRAST_DIR)/CGI/Html/ &> /dev/null;)
+
+clean:
+	rm -f tool_hdr metazen.cgi $(MGRAST_DIR)/CGI/metazen.cgi
