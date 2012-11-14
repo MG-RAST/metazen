@@ -46,7 +46,7 @@ my $username = "";
 #  $access_token = $cgi->cookie('WebSession');
 #  $user_url = "http://api.metagenomics.anl.gov/user/$login";
 #  $ua = LWP::UserAgent->new;
-#  $res = $ua->get($user_url, 'user_auth' => $access_token);
+#  $res = $ua->get($user_url, 'auth' => $access_token);
 #  unless($res->content =~ /^ERROR/) {
 #    $json_user_info = $json->decode($res->content);
 #    $username = $json_user_info->{'firstname'}." ".$json_user_info->{'lastname'};
@@ -68,7 +68,7 @@ if($username eq "" ) {
 
   $user_url = "http://api.metagenomics.anl.gov/user/$login";
   $ua = LWP::UserAgent->new;
-  $res = $ua->get($user_url, 'user_auth' => $access_token);
+  $res = $ua->get($user_url, 'auth' => $access_token);
   unless($res->content =~ /^ERROR/) {
     $json_user_info = $json->decode($res->content);
     $username = $json_user_info->{'firstname'}." ".$json_user_info->{'lastname'};
@@ -95,9 +95,9 @@ my $contact_status = $cgi->param('contact_status') ? $cgi->param('contact_status
 
 my $json_project_data;
 if ($previous_project ne "") {
-  my $project_url = "http://api.metagenomics.anl.gov/project/$previous_project&auth=$access_token";
+  my $project_url = "http://api.metagenomics.anl.gov/project/$previous_project";
   $ua = LWP::UserAgent->new;
-  $res = $ua->get($project_url, 'user_auth' => $access_token);
+  $res = $ua->get($project_url, 'auth' => $access_token);
   $json_project_data = $json->decode($res->content); # Returns an array of hashes with project name, id, and pi
 }
 
@@ -160,11 +160,11 @@ print close_template();
 
 
 sub print_prefill_options {
-  my $url = "http://api.metagenomics.anl.gov/api2.cgi/project?verbosity=minimal&limit=1000000&auth=$access_token";
+  my $url = "http://api.metagenomics.anl.gov/api2.cgi/project?verbosity=minimal&limit=1000000";
 #  my $url = "http://api.metagenomics.anl.gov/project?display=name&display=pi&display=id";
   my $ua = LWP::UserAgent->new;
 
-  my $res = $ua->get($url, 'user_auth' => $access_token);
+  my $res = $ua->get($url, 'auth' => $access_token);
 
   my $json_project_info = $json->decode($res->content); # Returns an array of hashes with project name, id, and pi
 
