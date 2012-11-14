@@ -1461,7 +1461,7 @@ sub logout {
   print "
     <div class='well'><h3>logout</h3>
       <br />
-      <p>You have been logged out.  To log back into MetaZen, click <a href=\"http://metagenomics.anl.gov/metazen.cgi\">here</a></p>\n
+      <p>You have been logged out.  To log back into MetaZen, click <a href=\"http://metagenomics.anl.gov/metazen.cgi\">here</a>.</p>\n
       <br />
     </div>";
   print close_template();
