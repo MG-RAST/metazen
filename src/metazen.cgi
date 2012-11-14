@@ -30,6 +30,7 @@ my $dialog_url = $settings->{dialog_url};
 my $token_url = $settings->{token_url};
 my $redirect_url = $settings->{redirect_url};
 
+my $page = $cgi->param('page');
 my $code = $cgi->param('code');
 
 my $login;
@@ -41,19 +42,24 @@ my $res;
 my $json_user_info;
 my $username = "";
 
-#if($cgi->cookie('Login') && $cgi->cookie('WebSession')) {
-#  $login = $cgi->cookie('Login');
-#  $access_token = $cgi->cookie('WebSession');
-#  $user_url = "http://api.metagenomics.anl.gov/user/$login";
-#  $ua = LWP::UserAgent->new;
-#  $res = $ua->get($user_url, 'auth' => $access_token);
-#  unless($res->content =~ /^ERROR/) {
-#    $json_user_info = $json->decode($res->content);
-#    $username = $json_user_info->{'firstname'}." ".$json_user_info->{'lastname'};
-#  }
-#}
+if($page eq 'Logout') {
+  logout();
+  exit;
+}
 
-if($username eq "" ) {
+if($cgi->cookie('Login') && $cgi->cookie('WebSession')) {
+  $login = $cgi->cookie('Login');
+  $access_token = $cgi->cookie('WebSession');
+  $user_url = "http://api.metagenomics.anl.gov/user/$login";
+  $ua = LWP::UserAgent->new;
+  $res = $ua->get($user_url, 'auth' => $access_token);
+  unless($res->content =~ /^ERROR/) {
+    $json_user_info = $json->decode($res->content);
+    $username = $json_user_info->{'firstname'}." ".$json_user_info->{'lastname'};
+  }
+}
+
+if($username eq "") {
   if(!defined($code)) {
     my $call_url = $dialog_url."&client_id=" . $app_id . "&redirect_url=" . uri_escape($redirect_url);
     print $cgi->redirect( -uri => $call_url );
@@ -110,16 +116,16 @@ my $session_cookie = CGI::Cookie->new( -name    => 'WebSession',
 
 if ($cgi->param('update')) {
   if ($cgi->param('update') eq 'print_top_of_form') {
-    print $cgi->header();
+    print $cgi->header( -cookie => [ $login_cookie, $session_cookie ] );
     print_top_of_form();
   } elsif ($cgi->param('update') eq 'print_bottom_of_form') {
-    print $cgi->header();
+    print $cgi->header( -cookie => [ $login_cookie, $session_cookie ] );
     print_bottom_of_form();
   } elsif ($cgi->param('update') eq 'generate_excel_spreadsheet') {
-    print $cgi->header();
+    print $cgi->header( -cookie => [ $login_cookie, $session_cookie ] );
     generate_excel_spreadsheet();
   } elsif ($cgi->param('update') eq 'search_address') {
-    print $cgi->header();
+    print $cgi->header( -cookie => [ $login_cookie, $session_cookie ] );
     search_address();
   } elsif ($cgi->param('update') eq 'download') {
     download();
@@ -161,7 +167,6 @@ print close_template();
 
 sub print_prefill_options {
   my $url = "http://api.metagenomics.anl.gov/api2.cgi/project?verbosity=minimal&limit=1000000";
-#  my $url = "http://api.metagenomics.anl.gov/project?display=name&display=pi&display=id";
   my $ua = LWP::UserAgent->new;
 
   my $res = $ua->get($url, 'auth' => $access_token);
@@ -1443,9 +1448,28 @@ sub print_field {
   }
 }
 
+sub logout {
+  my $login_cookie = CGI::Cookie->new( -name    => 'Login',
+                                       -value   => $login,
+                                       -expires => "-1d" );
+  my $session_cookie = CGI::Cookie->new( -name    => 'WebSession',
+                                         -value   => $access_token,
+                                         -expires => "-1d" );
+
+  print $cgi->header( -cookie => [ $login_cookie, $session_cookie ] );
+  print base_template();
+  print "
+    <div class='well'><h3>logout</h3>
+      <br />
+      <p>You have been logged out.  To log back into MetaZen, click <a href=\"http://metagenomics.anl.gov/metazen.cgi\">here</a></p>\n
+      <br />
+    </div>";
+  print close_template();
+}
+
 sub base_template {
-    
-  return qq~<!DOCTYPE html>
+
+  my $html =  qq~<!DOCTYPE html>
 <html>
 
   <head>
@@ -1476,28 +1500,42 @@ sub base_template {
          src="./Html/MGRAST_logo.png" alt="MG-RAST Metagenomics Analysis Server" />
 </a>
     <div id="nav_login_box">
-      <div id="top_nav">    
-        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=Home"><img src='./Html/mg-home.png' style='width: 20px; height: 20px;' title='Home'></a></div>
+      <div id="top_nav">
+~;
+
+  if($page ne 'Logout') {
+    $html .= qq~        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=Home"><img src='./Html/mg-home.png' style='width: 20px; height: 20px;' title='Home'></a></div>
         <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=MetagenomeSelect"><img src='./Html/mgrast_globe.png' style='width: 20px; height: 20px;' title='Browse'></a></div>
         <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=Analysis"><img src='./Html/analysis.gif' style='width: 20px; height: 20px;' title='Analyze'></a></div>
         <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=MetagenomeSearch"><img src='./Html/lupe.png' style='width: 20px; height: 20px;' title='Search'></a></div>
         <br>
         <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=DownloadMetagenome"><img src='./Html/mg-download.png' style='width: 20px; height: 20px;' title=Download></a></div>
-            <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=Upload"><img src='./Html/mg-upload.png' style='width: 20px; height: 20px;' title='Upload'></a></div>
+        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=Upload"><img src='./Html/mg-upload.png' style='width: 20px; height: 20px;' title='Upload'></a></div>
         <div id="top_nav_links"><a class= "nav_top" href="http://blog.metagenomics.anl.gov/howto/" target=_blank><img src='./Html/mg-help.png' style='width: 20px; height: 20px;' title='Support'></a></div>
         <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=Contact"><img src='./Html/mg-contact.png' style='width: 20px; height: 20px;' title='Contact'></a></div>
+~;
+  }
+
+  $html .= qq~
       </div>
       <div id="login">
         <div id='user'>
-          <div style='float:left; padding-top:4px; color: #8FBC3F; font-size: 1.4em;'>$username</div>
+~;
+
+  if($page ne 'Logout') {
+    $html .= qq~          <div style='float:left; padding-top:4px; color: #8FBC3F; font-size: 1.4em;'>$username</div>
           <div style='float:left;'>
             <a href='metagenomics.cgi?page=AccountManagement'>
               <img class='imglink' style='padding-left: 10px; height:20px;' src='http://metagenomics.anl.gov/Html/mg-account.png' title='Account Management' />
             </a>
-            <a href='metagenomics.cgi?page=Logout'>
+            <a href='metazen.cgi?page=Logout'>
               <img class='imglink' style='height:20px;' src='http://metagenomics.anl.gov//Html/mg-logout.png' title='Logout' />
             </a>
           </div>
+~;
+  }
+
+  $html .= qq~
         </div>
       </div>
     </div>
@@ -1507,6 +1545,7 @@ sub base_template {
     MetaZen (beta version)
     </div>
     <div id="content">~;
+  return $html;
 }
 
 sub close_template {
@@ -1520,7 +1559,7 @@ sub close_template {
 sub warning_message {
   my ($message) = @_;
 
-  print $cgi->header();
+  print $cgi->header( -cookie => [ $login_cookie, $session_cookie ] );
   print base_template();
   print qq~<div class="alert alert-error">
 <button class="close" data-dismiss="alert" type="button">x</button>
@@ -1533,7 +1572,7 @@ sub warning_message {
 sub success_message {
   my ($message) = @_;
 
-  print $cgi->header();
+  print $cgi->header( -cookie => [ $login_cookie, $session_cookie ] );
   print base_template();
   print qq~<div class="alert alert-success">
 <button class="close" data-dismiss="alert" type="button">x</button>
