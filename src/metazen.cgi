@@ -47,9 +47,9 @@ if($page eq 'Logout') {
   exit;
 }
 
-if($cgi->cookie('Login') && $cgi->cookie('WebSession')) {
+if($cgi->cookie('Login') && $cgi->cookie('MetazenWebSession')) {
   $login = $cgi->cookie('Login');
-  $access_token = $cgi->cookie('WebSession');
+  $access_token = $cgi->cookie('MetazenWebSession');
   $user_url = "http://api.metagenomics.anl.gov/user/$login";
   $ua = LWP::UserAgent->new;
   $res = $ua->get($user_url, 'auth' => $access_token);
@@ -110,7 +110,7 @@ if ($previous_project ne "") {
 my $login_cookie = CGI::Cookie->new( -name    => 'Login',
                                      -value   => $login,
                                      -expires => "+2d" );
-my $session_cookie = CGI::Cookie->new( -name    => 'WebSession',
+my $session_cookie = CGI::Cookie->new( -name    => 'MetazenWebSession',
                                        -value   => $access_token,
                                        -expires => "+2d" );
 
@@ -1450,10 +1450,10 @@ sub print_field {
 
 sub logout {
   my $login_cookie = CGI::Cookie->new( -name    => 'Login',
-                                       -value   => $login,
+                                       -value   => '',
                                        -expires => "-1d" );
-  my $session_cookie = CGI::Cookie->new( -name    => 'WebSession',
-                                         -value   => $access_token,
+  my $session_cookie = CGI::Cookie->new( -name    => 'MetazenWebSession',
+                                         -value   => '',
                                          -expires => "-1d" );
 
   print $cgi->header( -cookie => [ $login_cookie, $session_cookie ] );
