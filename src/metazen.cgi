@@ -50,7 +50,7 @@ if($page eq 'Logout') {
 if($cgi->cookie('Login') && $cgi->cookie('MetazenWebSession')) {
   $login = $cgi->cookie('Login');
   $access_token = $cgi->cookie('MetazenWebSession');
-  $user_url = "http://api.metagenomics.anl.gov/user/$login";
+  $user_url = "http://dev.metagenomics.anl.gov/api.cgi/user/$login";
   $ua = LWP::UserAgent->new;
   $res = $ua->get($user_url, 'auth' => $access_token);
   unless($res->content =~ /^ERROR/) {
@@ -72,7 +72,7 @@ if($username eq "") {
 
   ($access_token, $login) = $res =~ /access_token=(.*)\|(.*)/;
 
-  $user_url = "http://api.metagenomics.anl.gov/user/$login";
+  $user_url = "http://dev.metagenomics.anl.gov/api.cgi/user/$login";
   $ua = LWP::UserAgent->new;
   $res = $ua->get($user_url, 'auth' => $access_token);
   unless($res->content =~ /^ERROR/) {
@@ -82,7 +82,7 @@ if($username eq "") {
 }
 
 ######### Code to get metadata template ####################
-my $template_url = "http://api.metagenomics.anl.gov/metadata/template";
+my $template_url = "http://dev.metagenomics.anl.gov/api.cgi/metadata/template";
 $ua = LWP::UserAgent->new;
 $res = $ua->get($template_url);
 
@@ -101,7 +101,7 @@ my $contact_status = $cgi->param('contact_status') ? $cgi->param('contact_status
 
 my $json_project_data;
 if ($previous_project ne "") {
-  my $project_url = "http://api.metagenomics.anl.gov/project/$previous_project";
+  my $project_url = "http://dev.metagenomics.anl.gov/api.cgi/project/$previous_project";
   $ua = LWP::UserAgent->new;
   $res = $ua->get($project_url, 'auth' => $access_token);
   $json_project_data = $json->decode($res->content); # Returns an array of hashes with project name, id, and pi
