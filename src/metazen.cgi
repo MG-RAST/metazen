@@ -186,7 +186,7 @@ sub print_prefill_options {
   foreach my $info (@{$json_project_info->{'data'}}) {
     my $id = $info->{'id'};
     my $value = $id;
-    $value .= ($info->{'name'} eq "") ? "" : " - ".$info->{'name'};
+    $value .= ($info->{'name'} eq "") ? "" : " - ".substr($info->{'name'}, 0, 64);
     $value .= ($info->{'pi'} eq "") ? "" : " - ".encode_entities(decode("utf8", $info->{'pi'}));
     print "            <option value='$id'>$value</option>\n";
   }
