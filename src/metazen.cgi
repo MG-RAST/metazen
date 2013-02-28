@@ -101,7 +101,7 @@ my $contact_status = $cgi->param('contact_status') ? $cgi->param('contact_status
 
 my $json_project_data;
 if ($previous_project ne "") {
-  my $project_url = "http://dev.metagenomics.anl.gov/api.cgi/project/$previous_project";
+  my $project_url = "http://api.metagenomics.anl.gov/project/$previous_project?verbosity=full";
   $ua = LWP::UserAgent->new;
   $res = $ua->get($project_url, 'auth' => $access_token);
   $json_project_data = $json->decode($res->content); # Returns an array of hashes with project name, id, and pi
