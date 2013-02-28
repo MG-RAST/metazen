@@ -50,7 +50,7 @@ if($page eq 'Logout') {
 if($cgi->cookie('Login') && $cgi->cookie('MetazenWebSession')) {
   $login = $cgi->cookie('Login');
   $access_token = $cgi->cookie('MetazenWebSession');
-  $user_url = "http://dev.metagenomics.anl.gov/api.cgi/user/$login";
+  $user_url = "http://api.metagenomics.anl.gov/user/$login";
   $ua = LWP::UserAgent->new;
   $res = $ua->get($user_url, 'auth' => $access_token);
   unless($res->content =~ /^ERROR/) {
@@ -72,7 +72,7 @@ if($username eq "") {
 
   ($access_token, $login) = $res =~ /access_token=(.*)\|(.*)/;
 
-  $user_url = "http://dev.metagenomics.anl.gov/api.cgi/user/$login";
+  $user_url = "http://api.metagenomics.anl.gov/user/$login";
   $ua = LWP::UserAgent->new;
   $res = $ua->get($user_url, 'auth' => $access_token);
   unless($res->content =~ /^ERROR/) {
@@ -82,7 +82,7 @@ if($username eq "") {
 }
 
 ######### Code to get metadata template ####################
-my $template_url = "http://dev.metagenomics.anl.gov/api.cgi/metadata/template";
+my $template_url = "http://api.metagenomics.anl.gov/metadata/template";
 $ua = LWP::UserAgent->new;
 $res = $ua->get($template_url);
 
@@ -166,7 +166,7 @@ print close_template();
 
 
 sub print_prefill_options {
-  my $url = "http://api.metagenomics.anl.gov/api2.cgi/project?verbosity=minimal&limit=1000000";
+  my $url = "http://api.metagenomics.anl.gov/project?verbosity=minimal&limit=1000000";
   my $ua = LWP::UserAgent->new;
 
   my $res = $ua->get($url, 'auth' => $access_token);
