@@ -185,8 +185,8 @@ sub print_prefill_options {
 
   foreach my $info (@{$json_project_info->{'data'}}) {
     my $id = $info->{'id'};
-    my $value = $id;
-    $value .= ($info->{'name'} eq "") ? "" : " - ".substr($info->{'name'}, 0, 64);
+    my $value = encode_entities($id);
+    $value .= ($info->{'name'} eq "") ? "" : " - ".encode_entities(substr($info->{'name'}, 0, 64));
     $value .= ($info->{'pi'} eq "") ? "" : " - ".encode_entities(decode("utf8", $info->{'pi'}));
     print "            <option value='$id'>$value</option>\n";
   }
@@ -1188,8 +1188,8 @@ sub print_field {
     $value = encode_entities(decode("utf8", $json_project_data->{'metadata'}{$field}));
   }
 
-  if($previous_project ne "" && $field_level eq 'project' && $field eq 'mgrast_id') {
-    $value = $previous_project;
+  if($previous_project ne "" && $field_level eq 'project' && $field eq 'project_mgrast_id') {
+    $value = encode_entities($previous_project);
   }
 
   # Note that if the user is logged in, and they are the pi, their name and email will override that of the $previous_project
