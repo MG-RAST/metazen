@@ -1188,7 +1188,7 @@ sub print_field {
     $value = encode_entities(decode("utf8", $json_project_data->{'metadata'}{$field}));
   }
 
-  if($previous_project ne "" && $field_level eq 'project' && $field eq 'project_mgrast_id') {
+  if($previous_project ne "" && $field_level eq 'project' && $field eq 'mgrast_id') {
     $value = encode_entities($previous_project);
   }
 
@@ -1242,7 +1242,7 @@ sub print_field {
       return "
                       <tr>
                         $req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
-                        <td style='vertical-align:middle;'><input style='width:195px;' type='text' name='$field_name' value = ''></td>
+                        <td style='vertical-align:middle;'><input style='width:195px;' type='text' name='$field_name' value = '$value'></td>
                       </tr>\n";
     } else {
       my $count_field_name = "";
