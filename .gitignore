@@ -1,7 +1,9 @@
 # git ignore file 
 
 # ignore all generated files
-conf/Conf.pm
+conf/metazen_config.pm
+metazen.cgi
+tool_hdr
 
 # ignore files with # and ~
 *\#*

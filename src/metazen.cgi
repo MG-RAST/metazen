@@ -3,7 +3,7 @@ use warnings;
 
 use CGI;
 use CGI::Cookie;
-use Conf;
+use metazen_config;
 use JSON;
 use Encode;
 use URI::Escape;
@@ -16,13 +16,13 @@ use File::Temp qw/ tempfile tempdir /;
 my $cgi = new CGI();
 my $json = new JSON();
 
-my $settings = { app_id       => $Conf::mz_app_id,
-                 app_secret   => $Conf::mz_app_secret,
-                 dialog_url   => "$Conf::mz_oAuth_url?action=dialog",
-                 token_url    => "$Conf::mz_oAuth_url?action=token",
-                 redirect_url => $Conf::mz_redirect_url };
+my $settings = { app_id       => $metazen_config::app_id,
+                 app_secret   => $metazen_config::app_secret,
+                 dialog_url   => "$metazen_config::oAuth_url?action=dialog",
+                 token_url    => "$metazen_config::oAuth_url?action=token",
+                 redirect_url => $metazen_config::redirect_url };
 
-my $google_analytics = $Conf::mz_google_analytics;
+my $google_analytics = $metazen_config::google_analytics;
 
 my $app_id = $settings->{app_id};
 my $app_secret = $settings->{app_secret};
