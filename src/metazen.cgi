@@ -16,13 +16,13 @@ use File::Temp qw/ tempfile tempdir /;
 my $cgi = new CGI();
 my $json = new JSON();
 
-my $settings = { app_id       => $Conf::app_id,
-                 app_secret   => $Conf::app_secret,
-                 dialog_url   => "$Conf::oAuth_url?action=dialog",
-                 token_url    => "$Conf::oAuth_url?action=token",
-                 redirect_url => $Conf::redirect_url };
+my $settings = { app_id       => $Conf::mz_app_id,
+                 app_secret   => $Conf::mz_app_secret,
+                 dialog_url   => "$Conf::mz_oAuth_url?action=dialog",
+                 token_url    => "$Conf::mz_oAuth_url?action=token",
+                 redirect_url => $Conf::mz_redirect_url };
 
-my $google_analytics = $Conf::google_analytics;
+my $google_analytics = $Conf::mz_google_analytics;
 
 my $app_id = $settings->{app_id};
 my $app_secret = $settings->{app_secret};

@@ -1,0 +1,14 @@
+# git ignore file 
+
+# ignore all generated files
+conf/Conf.pm
+
+# ignore files with # and ~
+*\#*
+*\~*
+
+# os x files
+*.DS_Store
+
+# Thumbnails
+._*
