@@ -1455,8 +1455,11 @@ sub logout {
   my $session_cookie = CGI::Cookie->new( -name    => 'MetazenWebSession',
                                          -value   => '',
                                          -expires => "-1d" );
+  my $web_session_cookie = CGI::Cookie->new( -name    => 'WebSession',
+                                             -value   => '',
+                                             -expires => "-1d" );
 
-  print $cgi->header( -cookie => [ $login_cookie, $session_cookie ] );
+  print $cgi->header( -cookie => [ $login_cookie, $session_cookie, $web_session_cookie ] );
   print base_template();
   print "
     <div class='well'><h3>logout</h3>
