@@ -1,0 +1,8 @@
+OVERVIEW
+-----------------------------------------
+Metazen provides an interactive webpage for users to generate an Excel spreasheet for their sequencing sample metadata.
+
+VERSION: 1.0 (Released 10/01/2013)
+------------------------------------------
+UPDATED FEATURES / MAJOR BUG FIXES:
+ - Authentication of users thru an oAuth server for prefilling project information from previous sequencing projects.
