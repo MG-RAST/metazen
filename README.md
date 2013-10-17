@@ -1,6 +1,6 @@
 Metazen v1.0
 =======
-
+<br />
 
 REQUIREMENTS:
 
@@ -10,11 +10,11 @@ machine with a web server enabled with CGI support and Perl installed.
 Additionally, if not already installed, you will need to install
 the following perl modules:
 
-CGI
-JSON
-LWP::UserAgent
-Spreadsheet::WriteExcel
-
+CGI<br />
+JSON<br />
+LWP::UserAgent<br />
+Spreadsheet::WriteExcel<br />
+<br />
 
 INSTALLATION:
 
