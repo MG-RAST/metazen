@@ -16,13 +16,13 @@ use File::Temp qw/ tempfile tempdir /;
 my $cgi = new CGI();
 my $json = new JSON();
 
-my $settings = { app_id       => $metazen_config::app_id,
-                 app_secret   => $metazen_config::app_secret,
-                 dialog_url   => "$metazen_config::oAuth_url?action=dialog",
-                 token_url    => "$metazen_config::oAuth_url?action=token",
-                 redirect_url => $metazen_config::redirect_url };
+my $settings = { app_id       => $metazen_config::mz_app_id,
+                 app_secret   => $metazen_config::mz_app_secret,
+                 dialog_url   => "$metazen_config::mz_oAuth_url?action=dialog",
+                 token_url    => "$metazen_config::mz_oAuth_url?action=token",
+                 redirect_url => $metazen_config::mz_redirect_url };
 
-my $google_analytics = $metazen_config::google_analytics;
+my $google_analytics = $metazen_config::mz_google_analytics;
 
 my $app_id = $settings->{app_id};
 my $app_secret = $settings->{app_secret};
@@ -1363,8 +1363,15 @@ sub print_field {
                         <td style='vertical-align:middle;'><input style='width:100px;' type='text' name='$field_name' value = '' onkeydown=\"return returnNumeric(event);\"> (integer value)</td>
                       </tr>\n";
   } elsif($field_type eq 'select') {
-    my $input_field = "<td style='vertical-align:middle;'><input style='width:195px;' type='text' name='$field_name' value = '$value'></td>";
-    if($field_level eq 'sample' && $field eq 'continent') {
+    my $input_field = "<td style='vertical-align:middle;'><div id=\"$field_name\_div\" class=\"control-group\" style=\"margin-bottom:0px\"><input style='width:195px;' type='text' name='$field_name' value = '$value'></div></td>";
+    if($field_level eq 'project' && ($field eq 'PI_organization_country' || $field eq 'organization_country')) {
+      my $country_codes_list = country_codes();
+      return "
+                      <tr>
+                        $req_opt_html$displayed_field<span id='$field_name'><sup style='cursor: help;'>[?]</sup></span>&nbsp;:</td>
+                        <td><div id=\"$field_name\_div\" class=\"control-group\" style=\"margin-bottom:0px\">".$cgi->popup_menu( -name => "$field_name", -values => $country_codes_list, -style=> "width:205px;", -default => $value )."</div></td>
+                      </tr>\n";
+    } elsif($field_level eq 'sample' && $field eq 'continent') {
       my @values = ('', 'Africa', 'Antarctica', 'Asia', 'Australia', 'Europe', 'North America', 'South America');
       $input_field = "<td>".$cgi->popup_menu( -name => "$field_name", -values => \@values, -style=> "width:205px;", -default => '' )."</td>";
     } elsif($field_level eq 'library' && $field eq 'seq_meth') {
