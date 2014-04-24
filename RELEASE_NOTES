@@ -2,6 +2,18 @@ OVERVIEW
 -----------------------------------------
 Metazen provides an interactive webpage for users to generate an Excel spreasheet for their sequencing sample metadata.
 
+
+VERSION: 1.1 (Released 04/24/2014)
+------------------------------------------
+Replaced Bioportal widgets displaying ontology trees with a javascript version taken from Retina at:
+https://github.com/MG-RAST/Retina/blob/master/js/standalone.tree.js
+
+This change allows us to display older versions of the ontology no longer being hosted by Bioportal.  Also,
+only the most recent versions are being served by them so version is always changing.  Stable versions of
+their ontologies are being stored at MG-RAST and are accessible through the MG-RAST API at:
+http://api.metagenomics.anl.gov/metadata/
+
+
 VERSION: 1.0 (Released 10/01/2013)
 ------------------------------------------
 UPDATED FEATURES / MAJOR BUG FIXES:
