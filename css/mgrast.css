@@ -386,7 +386,7 @@ div#warning {
 }
 
 #content_frame {
-    background-image: url(background_image.png);
+    background-image: url(../images/background_image.png);
     background-repeat: repeat-x;
     margin: 0px 0px;
     padding-top: 15px;

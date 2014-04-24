@@ -58,22 +58,6 @@ function updateSeqMakeModel (lib_type, seq_make_div_name, seq_model_div_name) {
   }
 }
 
-// Function to get the selected concept names from the bioontology widgets and put them in text fields.
-function setEnvField (ontologyTreeID) {
-  var conceptName = null;
-  app = document[ontologyTreeID];
-  if (app && app.getOntologyID) {
-    conceptName = app.getSelectedConceptName();
-  }
-  if(ontologyTreeID == "OntologyTreeBiome") {
-    document.forms['metadata_form'].elements['sample_biome'].value = conceptName;
-  } else if(ontologyTreeID == "OntologyTreeEnvFeature") {
-    document.forms['metadata_form'].elements['sample_feature'].value = conceptName;
-  } else if(ontologyTreeID == "OntologyTreeEnvMaterial") {
-    document.forms['metadata_form'].elements['sample_material'].value = conceptName;
-  }
-}
-
 function returnNumeric (ev) {
   return ( ev.ctrlKey || ev.altKey || (47<ev.keyCode && ev.keyCode<58 && ev.shiftKey==false) || (95<ev.keyCode && ev.keyCode<106) || (ev.keyCode==8) || (ev.keyCode==9) || (ev.keyCode>34 && ev.keyCode<41) || (ev.keyCode==46) );
 }

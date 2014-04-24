@@ -368,6 +368,32 @@ sub print_top_of_form {
 sub print_bottom_of_form {
 
   print "
+         <script>
+           jQuery.get(\"http://api.metagenomics.anl.gov/1/metadata/ontology?name=biome&version=2013-04-27\", function (data) {
+             standaloneTree.create({
+               target: document.getElementById('biome'),
+               data: data,
+               width: 284,
+               index: 0
+             }).render(0);
+           });
+           jQuery.get(\"http://api.metagenomics.anl.gov/1/metadata/ontology?name=feature&version=2013-04-27\", function (data) {
+             standaloneTree.create({
+               target: document.getElementById('feature'),
+               data: data,
+               width: 284,
+               index: 1
+             }).render(1);
+           });
+           jQuery.get(\"http://api.metagenomics.anl.gov/1/metadata/ontology?name=material&version=2013-04-27\", function (data) {
+             standaloneTree.create({
+               target: document.getElementById('material'),
+               data: data,
+               width: 284,
+               index: 2
+             }).render(2);
+           });
+         </script>
          <ul class='nav nav-pills nav-stacked'>
             <li><a onclick=\"toggle('env_div');\" class='pill_incomplete' id='env_pill' style='font-size: 17px; font-weight: bold;'>3. enter environment information</a></li>
             <div id='env_div' style='display: none;' class='well'>
@@ -382,76 +408,15 @@ sub print_bottom_of_form {
                   <td align=center style='font-weight: bold;'>Environmental Material</td>
                 </tr>
                 <tr>
-                  <td align=center>
-                    <object classid='clsid:D27CDB6E-AE6D-11cf-96B8-444553540000'
-                            id='OntologyTreeBiome' width='300' height='100%'
-                            codebase='http://fpdownload.macromedia.com/get/flashplayer/current/swflash.cab'>
-                            <param name='movie' value='http://keg.cs.uvic.ca/ncbo/ontologytree/OntologyTree.swf' />
-                            <param name='quality' value='high' />
-                            <param name='bgcolor' value='#ffffff' />
-                            <param name='allowScriptAccess' value='always' />
-                            <param name='flashVars' value='ontology=1069&rootconceptid=ENVO:00000428&alerterrors=false&canchangeontology=false&canchangeroot=false&virtual=true&server=http://rest.bioontology.org/bioportal' />
-                            <embed src='http://keg.cs.uvic.ca/ncbo/ontologytree/OntologyTree.swf' quality='high' bgcolor='#ffffff'
-                                    width='300' height='100%' name='OntologyTreeBiome' align='middle'
-                                    play='true'
-                                    loop='false'
-                                    allowScriptAccess='always'
-                                    type='application/x-shockwave-flash'
-                                    flashVars='ontology=1069&rootconceptid=ENVO:00000428&alerterrors=false&canchangeontology=false&canchangeroot=false&virtual=true&server=http://rest.bioontology.org/bioportal'
-                                    pluginspage='http://www.adobe.com/go/getflashplayer'>
-                            </embed>
-                    </object>
+                  <td>
+                    <div id='biome' style='float: left; margin-right: 16px; background-color: white;'></id>
                   </td>
-                  <td align=center>
-                    <object classid='clsid:D27CDB6E-AE6D-11cf-96B8-444553540000'
-                            id='OntologyTreeEnvFeature' width='300' height='100%'
-                            codebase='http://fpdownload.macromedia.com/get/flashplayer/current/swflash.cab'>
-                            <param name='movie' value='http://keg.cs.uvic.ca/ncbo/ontologytree/OntologyTree.swf' />
-                            <param name='quality' value='high' />
-                            <param name='bgcolor' value='#ffffff' />
-                            <param name='allowScriptAccess' value='always' />
-                            <param name='flashVars' value='ontology=1069&rootconceptid=ENVO:00002297&alerterrors=false&canchangeontology=false&canchangeroot=false&virtual=true&server=http://rest.bioontology.org/bioportal' />
-                            <embed src='http://keg.cs.uvic.ca/ncbo/ontologytree/OntologyTree.swf' quality='high' bgcolor='#ffffff'
-                                    width='300' height='100%' name='OntologyTreeEnvFeature' align='middle'
-                                    play='true'
-                                    loop='false'
-                                    allowScriptAccess='always'
-                                    type='application/x-shockwave-flash'
-                                    flashVars='ontology=1069&rootconceptid=ENVO:00002297&alerterrors=false&canchangeontology=false&canchangeroot=false&virtual=true&server=http://rest.bioontology.org/bioportal'
-                                    pluginspage='http://www.adobe.com/go/getflashplayer'>
-                            </embed>
-                    </object>
+                  <td>
+                    <div id='feature' style='float: left; margin-right: 16px; background-color: white;'></id>
                   </td>
-                  <td align=center>
-                    <object classid='clsid:D27CDB6E-AE6D-11cf-96B8-444553540000'
-                            id='OntologyTreeEnvMaterial' width='300' height='100%'
-                            codebase='http://fpdownload.macromedia.com/get/flashplayer/current/swflash.cab'>
-                            <param name='movie' value='http://keg.cs.uvic.ca/ncbo/ontologytree/OntologyTree.swf' />
-                            <param name='quality' value='high' />
-                            <param name='bgcolor' value='#ffffff' />
-                            <param name='allowScriptAccess' value='always' />
-                            <param name='flashVars' value='ontology=1069&rootconceptid=ENVO:00010483&alerterrors=false&canchangeontology=false&canchangeroot=false&virtual=true&server=http://rest.bioontology.org/bioportal' />
-                            <embed src='http://keg.cs.uvic.ca/ncbo/ontologytree/OntologyTree.swf' quality='high' bgcolor='#ffffff'
-                                    width='300' height='100%' name='OntologyTreeEnvMaterial' align='middle'
-                                    play='true'
-                                    loop='false'
-                                    allowScriptAccess='always'
-                                    type='application/x-shockwave-flash'
-                                    flashVars='ontology=1069&rootconceptid=ENVO:00010483&alerterrors=false&canchangeontology=false&canchangeroot=false&virtual=true&server=http://rest.bioontology.org/bioportal'
-                                    pluginspage='http://www.adobe.com/go/getflashplayer'>
-                            </embed>
-                    </object>
+                  <td>
+                    <div id='material' style='float: left; margin-right: 16px; background-color: white;'></id>
                   </td>
-                </tr>
-                <tr>
-                  <td align=center><input type='button' style='width: 250px' class='btn' value='enter selected term as biome' onclick=\"setEnvField('OntologyTreeBiome');\" /></td>
-                  <td align=center><input type='button' style='width: 250px' class='btn' value='enter selected term as env feature' onclick=\"setEnvField('OntologyTreeEnvFeature')\" /></td>
-                  <td align=center><input type='button' style='width: 250px' class='btn' value='enter selected term as env material' onclick=\"setEnvField('OntologyTreeEnvMaterial')\" /></td>
-                </tr>
-                <tr>
-                  <td align=center><input type='text' name='sample_biome' readonly /></td>
-                  <td align=center><input type='text' name='sample_feature' readonly /></td>
-                  <td align=center><input type='text' name='sample_material' readonly /></td>
                 </tr>
               </table>
             </div>
@@ -966,6 +931,12 @@ sub generate_excel_spreadsheet {
         $sample_worksheet->write(1+$sample_counter, $col, "Sample$sample_counter");
       } elsif($field eq 'env_package') {
         $sample_worksheet->write(1+$sample_counter, $col, $cgi->param("env_package"));
+      } elsif($field eq 'biome') {
+        $sample_worksheet->write(1+$sample_counter, $col, $cgi->param("tree_search_input_0"));
+      } elsif($field eq 'feature') {
+        $sample_worksheet->write(1+$sample_counter, $col, $cgi->param("tree_search_input_1"));
+      } elsif($field eq 'material') {
+        $sample_worksheet->write(1+$sample_counter, $col, $cgi->param("tree_search_input_2"));
       } else {
         $sample_worksheet->write(1+$sample_counter, $col, decode("utf8", $cgi->param("sample_$field")));
       }
@@ -1486,17 +1457,18 @@ sub base_template {
 
     <title>MetaZen (beta version)</title>
 
-    <script type="text/javascript" src="./Html/jquery.1.7.2.min.js"></script>
-    <script type="text/javascript" src="./Html/bootstrap.min.js"></script>
-    <script type="text/javascript" src="./Html/MetaZen.js"></script>
-    <script type="text/javascript" src="./Html/bootstrap-datepicker.js"></script>
-    <script type="text/javascript" src="./Html/bootstrap-timepicker.js"></script>
+    <script type="text/javascript" src="./js/jquery.min.js"></script>
+    <script type="text/javascript" src="./js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="./js/MetaZen.js"></script>
+    <script type="text/javascript" src="./js/bootstrap-datepicker.js"></script>
+    <script type="text/javascript" src="./js/bootstrap-timepicker.js"></script>
+    <script type="text/javascript" src="./js/standalone.tree.js"></script>
 
-    <link rel="stylesheet" type="text/css" href="./Html/bootstrap.min.MetaZen.css">
-    <link rel="stylesheet" type="text/css" href="./Html/Upload.css">
-    <link rel="stylesheet" type="text/css" href="./Html/datepicker.css">
-    <link rel="stylesheet" type="text/css" href="./Html/timepicker.css">
-    <link rel="stylesheet" type="text/css" href="./Html/mgrast.css">
+    <link rel="stylesheet" type="text/css" href="./css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="./css/Upload.css">
+    <link rel="stylesheet" type="text/css" href="./css/datepicker.css">
+    <link rel="stylesheet" type="text/css" href="./css/timepicker.css">
+    <link rel="stylesheet" type="text/css" href="./css/mgrast.css">
 
   </head>
 
@@ -1507,22 +1479,22 @@ sub base_template {
                 height: 80px; 
                 margin-left: 40px;
                 margin-top: 10px;" 
-         src="./Html/MGRAST_logo.png" alt="MG-RAST Metagenomics Analysis Server" />
+         src="./images/MGRAST_logo.png" alt="MG-RAST Metagenomics Analysis Server" />
 </a>
     <div id="nav_login_box">
       <div id="top_nav">
 ~;
 
   if($page ne 'Logout') {
-    $html .= qq~        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=Home"><img src='./Html/mg-home.png' style='width: 20px; height: 20px;' title='Home'></a></div>
-        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=MetagenomeSelect"><img src='./Html/mgrast_globe.png' style='width: 20px; height: 20px;' title='Browse'></a></div>
-        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=Analysis"><img src='./Html/analysis.gif' style='width: 20px; height: 20px;' title='Analyze'></a></div>
-        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=MetagenomeSearch"><img src='./Html/lupe.png' style='width: 20px; height: 20px;' title='Search'></a></div>
+    $html .= qq~        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=Home"><img src='./images/mg-home.png' style='width: 20px; height: 20px;' title='Home'></a></div>
+        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=MetagenomeSelect"><img src='./images/mgrast_globe.png' style='width: 20px; height: 20px;' title='Browse'></a></div>
+        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=Analysis"><img src='./images/analysis.gif' style='width: 20px; height: 20px;' title='Analyze'></a></div>
+        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=MetagenomeSearch"><img src='./images/lupe.png' style='width: 20px; height: 20px;' title='Search'></a></div>
         <br>
-        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=DownloadMetagenome"><img src='./Html/mg-download.png' style='width: 20px; height: 20px;' title=Download></a></div>
-        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=Upload"><img src='./Html/mg-upload.png' style='width: 20px; height: 20px;' title='Upload'></a></div>
-        <div id="top_nav_links"><a class= "nav_top" href="http://blog.metagenomics.anl.gov/howto/" target=_blank><img src='./Html/mg-help.png' style='width: 20px; height: 20px;' title='Support'></a></div>
-        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=Contact"><img src='./Html/mg-contact.png' style='width: 20px; height: 20px;' title='Contact'></a></div>
+        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=DownloadMetagenome"><img src='./images/mg-download.png' style='width: 20px; height: 20px;' title=Download></a></div>
+        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=Upload"><img src='./images/mg-upload.png' style='width: 20px; height: 20px;' title='Upload'></a></div>
+        <div id="top_nav_links"><a class= "nav_top" href="http://blog.metagenomics.anl.gov/howto/" target=_blank><img src='./images/mg-help.png' style='width: 20px; height: 20px;' title='Support'></a></div>
+        <div id="top_nav_links"><a class= "nav_top" href="http://metagenomics.anl.gov/metagenomics.cgi?page=Contact"><img src='./images/mg-contact.png' style='width: 20px; height: 20px;' title='Contact'></a></div>
 ~;
   }
 
@@ -1536,10 +1508,10 @@ sub base_template {
     $html .= qq~          <div style='float:left; padding-top:4px; color: #8FBC3F; font-size: 1.4em;'>$username</div>
           <div style='float:left;'>
             <a href='metagenomics.cgi?page=AccountManagement'>
-              <img class='imglink' style='padding-left: 10px; height:20px;' src='http://metagenomics.anl.gov/Html/mg-account.png' title='Account Management' />
+              <img class='imglink' style='padding-left: 10px; height:20px;' src='./images/mg-account.png' title='Account Management' />
             </a>
             <a href='metazen.cgi?page=Logout'>
-              <img class='imglink' style='height:20px;' src='http://metagenomics.anl.gov//Html/mg-logout.png' title='Logout' />
+              <img class='imglink' style='height:20px;' src='./images/mg-logout.png' title='Logout' />
             </a>
           </div>
 ~;
