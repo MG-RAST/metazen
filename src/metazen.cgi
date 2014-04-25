@@ -42,7 +42,7 @@ my $res;
 my $json_user_info;
 my $username = "";
 
-if($page eq 'Logout') {
+if(defined $page && $page eq 'Logout') {
   logout();
   exit;
 }
